@@ -2,21 +2,21 @@
 
 # Baby Buddy for Android
 
-这是开源 Web 应用 [Baby Buddy](https://docs.baby-buddy.net/)（[源代码](https://github.com/babybuddy/babybuddy)）的安卓集成客户端，
+这是开源 Web 应用 [Baby Buddy](https://docs.baby-buddy.net/)（[源代码](https://github.com/babybuddy/babybuddy)）的安卓集成客户端**汉化版**，
 专门针对照顾孩子时**快速**启动和停止计时器以及记录尿布更换进行了优化。
 
 ![应用示例图片](doc/images/demo_screenie-smaller.png)
 
 ## 获取方式
 
-您可以直接从 [最新版本](https://github.com/babybuddy/babybuddy-for-android/releases/latest) 安装 APK，
+您可以直接从 [最新版本](https://github.com/babybuddy/babybuddy-for-android/releases/latest) 安装 原版APK，
 也可以在 Google Play 商店购买此应用：
 
 <a href='https://play.google.com/store/apps/details?id=eu.pkgsoftware.babybuddywidgets&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img height='75' alt='在 Google Play 上获取' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png'/></a>
 
 ### 第三方仓库
 
-此应用也可在 F-Droid 仓库中获取，由 [@IzzySoft](https://github.com/IzzySoft) 友情提供
+此应用也可在 F-Droid 仓库中获取原版应用，由 [@IzzySoft](https://github.com/IzzySoft) 友情提供
 
 <a href='https://apt.izzysoft.de/packages/eu.pkgsoftware.babybuddywidgets'><img height='75' alt='在 IzzyOnDroid 获取' src='https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png'/></a>
 
