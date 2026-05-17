@@ -24,12 +24,14 @@ jobs:
           fetch-depth: 1
 
       - name: Initialize submodules
-        run: git submodule update --init --recursive
+        run: |
+          git submodule update --init --recursive
+          ls -la 3rdparty/zxing-cpp/ 2>/dev/null | head -5 || echo "zxing submodule not found"
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y pandoc make gcc g++ imagemagick jq python3 python3-pip python3-venv
+          sudo apt-get install -y pandoc make gcc g++ imagemagick jq python3 python3-pip python3-venv unzip
 
       - name: Install Python packages
         run: |
@@ -44,74 +46,102 @@ jobs:
 
       - name: Setup Android SDK
         run: |
-          echo "=== Setting up Android SDK ==="
+          echo "=== Finding Android SDK ==="
+          
+          SDK_ROOT=""
           if [ -d "/opt/android-sdk" ]; then
-            echo "Using Android SDK from /opt/android-sdk"
-            ANDROID_SDK_ROOT="/opt/android-sdk"
+            SDK_ROOT="/opt/android-sdk"
           elif [ -d "$HOME/android-sdk" ]; then
-            echo "Using Android SDK from $HOME/android-sdk"
-            ANDROID_SDK_ROOT="$HOME/android-sdk"
+            SDK_ROOT="$HOME/android-sdk"
           elif [ -d "/usr/local/lib/android/sdk" ]; then
-            echo "Using Android SDK from /usr/local/lib/android/sdk"
-            ANDROID_SDK_ROOT="/usr/local/lib/android/sdk"
-          else
-            echo "No pre-installed SDK found"
-            exit 1
+            SDK_ROOT="/usr/local/lib/android/sdk"
           fi
           
-          export ANDROID_HOME="$ANDROID_SDK_ROOT"
-          export ANDROID_SDK_ROOT="$ANDROID_SDK_ROOT"
+          if [ -z "$SDK_ROOT" ]; then
+            echo "ERROR: No pre-installed Android SDK found"
+            echo "Creating new SDK at /opt/android-sdk"
+            mkdir -p /opt/android-sdk
+            SDK_ROOT="/opt/android-sdk"
+          fi
           
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          ls -la "$ANDROID_HOME/"
+          echo "Using SDK_ROOT: $SDK_ROOT"
+          export ANDROID_HOME="$SDK_ROOT"
+          export ANDROID_SDK_ROOT="$SDK_ROOT"
           
-          echo "Accepting licenses..."
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses 2>/dev/null || true
-          yes | "$ANDROID_HOME/tools/bin/sdkmanager" --licenses 2>/dev/null || true
+          echo "=== SDK Directory Contents ==="
+          ls -la "$SDK_ROOT/"
           
-          echo "Checking platforms..."
-          ls -la "$ANDROID_HOME/platforms/" 2>/dev/null || echo "No platforms"
+          echo "=== Finding sdkmanager ==="
+          SDKMANAGER=""
+          for path in \
+            "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" \
+            "$SDK_ROOT/cmdline-tools/12.0/bin/sdkmanager" \
+            "$SDK_ROOT/cmdline-tools/11.0/bin/sdkmanager" \
+            "$SDK_ROOT/tools/bin/sdkmanager" \
+            "$SDK_ROOT/platform-tools/sdkmanager"
+          do
+            if [ -f "$path" ]; then
+              SDKMANAGER="$path"
+              echo "Found sdkmanager: $SDKMANAGER"
+              break
+            fi
+          done
           
-          echo "Checking build-tools..."
-          ls -la "$ANDROID_HOME/build-tools/" 2>/dev/null || echo "No build-tools"
+          if [ -z "$SDKMANAGER" ]; then
+            echo "ERROR: sdkmanager not found"
+            echo "Downloading Android command line tools..."
+            cd /tmp
+            curl -o cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076700_latest.zip
+            unzip -q cmdline-tools.zip
+            mkdir -p "$SDK_ROOT/cmdline-tools"
+            mv cmdline-tools "$SDK_ROOT/cmdline-tools/latest"
+            SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+            cd -
+          fi
           
-          echo "Checking NDK..."
-          ls -la "$ANDROID_HOME/ndk/" 2>/dev/null || echo "No NDK"
+          echo "sdkmanager: $SDKMANAGER"
+          
+          echo "=== Accepting Licenses ==="
+          yes | $SDKMANAGER --licenses 2>/dev/null || true
+          
+          echo "=== Current Platforms ==="
+          ls -la "$SDK_ROOT/platforms/" 2>/dev/null || echo "No platforms"
+          
+          echo "=== Current Build-Tools ==="
+          ls -la "$SDK_ROOT/build-tools/" 2>/dev/null || echo "No build-tools"
+          
+          echo "=== Current NDK ==="
+          ls -la "$SDK_ROOT/ndk/" 2>/dev/null || echo "No NDK"
+          
+          echo "=== Installing Required SDK Components ==="
+          $SDKMANAGER --install "platforms;android-35" "build-tools;35.0.0" "ndk;27.0.12077973" 2>&1 || echo "Some components may already exist"
+          
+          echo "=== Final SDK Status ==="
+          echo "Platforms: $(ls $SDK_ROOT/platforms/ 2>/dev/null || echo 'none')"
+          echo "Build-Tools: $(ls $SDK_ROOT/build-tools/ 2>/dev/null || echo 'none')"
+          echo "NDK: $(ls $SDK_ROOT/ndk/ 2>/dev/null || echo 'none')"
 
       - name: Set environment variables
         run: |
-          if [ -d "/opt/android-sdk" ]; then
-            echo "ANDROID_HOME=/opt/android-sdk" >> $GITHUB_ENV
-            echo "ANDROID_SDK_ROOT=/opt/android-sdk" >> $GITHUB_ENV
-          elif [ -d "/usr/local/lib/android/sdk" ]; then
-            echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
-            echo "ANDROID_SDK_ROOT=/usr/local/lib/android/sdk" >> $GITHUB_ENV
-          fi
-          echo "ANDROID_HOME set to: $ANDROID_HOME"
-          echo "JAVA_HOME set to: $JAVA_HOME"
-
-      - name: Verify build prerequisites
-        run: |
-          echo "=== Verifying Prerequisites ==="
-          echo "JAVA_HOME=$JAVA_HOME"
-          "$JAVA_HOME/bin/java" -version 2>&1 || true
-          echo "---"
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          ls -la "$ANDROID_HOME/platforms/" 2>/dev/null || echo "No platforms"
-          ls -la "$ANDROID_HOME/ndk/" 2>/dev/null || echo "No NDK"
-          echo "---"
-          echo "zxing submodule:"
-          ls -la 3rdparty/zxing-cpp/ 2>/dev/null | head -10
+          for path in "/opt/android-sdk" "$HOME/android-sdk" "/usr/local/lib/android/sdk"; do
+            if [ -d "$path" ]; then
+              echo "ANDROID_HOME=$path" >> $GITHUB_ENV
+              echo "ANDROID_SDK_ROOT=$path" >> $GITHUB_ENV
+              echo "Set ANDROID_HOME=$path"
+              break
+            fi
+          done
+          echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
 
       - name: Run Gradle build
         run: |
           echo "=== Starting Gradle Build ==="
           chmod +x gradlew
-          ./gradlew --no-daemon assembleDebug -PskipIntegrationTests --stacktrace 2>&1
+          ./gradlew --no-daemon assembleDebug -PskipIntegrationTests --stacktrace 2>&1 | tee gradle-output.log
 
       - name: Verify APK
         run: |
-          echo "Checking for APK..."
+          echo "=== Checking for APK ==="
           if ls app/build/outputs/apk/debug/*.apk 1> /dev/null 2>&1; then
             echo "========================================"
             echo "✅ Debug APK built successfully!"
@@ -119,8 +149,11 @@ jobs:
             ls -la app/build/outputs/apk/debug/
             echo "APK Size: $(du -h app/build/outputs/apk/debug/*.apk | cut -f1)"
           else
-            echo "❌ APK not found in expected location"
-            find app/build -name "*.apk" 2>/dev/null || echo "No APK found at all"
+            echo "❌ APK not found"
+            echo "Looking for any APK files..."
+            find app/build -name "*.apk" 2>/dev/null || echo "No APK found"
+            echo "Last 50 lines of gradle output:"
+            tail -50 gradle-output.log 2>/dev/null || true
             exit 1
           fi
 
