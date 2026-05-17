@@ -42,9 +42,34 @@ jobs:
           distribution: 'temurin'
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          cmdline-tools-version: '11076700'
+        run: |
+          echo "ANDROID_HOME: $ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
+          
+          if [ -d "/usr/local/lib/android/sdk" ]; then
+            echo "Using preinstalled Android SDK"
+            ls -la /usr/local/lib/android/sdk/
+            
+            if [ ! -d "$ANDROID_HOME/platforms/android-35" ]; then
+              echo "Installing Android 35 platform..."
+              yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platforms;android-35" "build-tools;35.0.0" "ndk;27.0.12077973"
+            fi
+          fi
+          
+          echo "Accepting Android SDK licenses..."
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          
+          echo "Installed platforms:"
+          ls -la $ANDROID_HOME/platforms/ 2>/dev/null || echo "No platforms dir"
+          
+          echo "Installed build-tools:"
+          ls -la $ANDROID_HOME/build-tools/ 2>/dev/null || echo "No build-tools dir"
+
+      - name: Set environment variables
+        run: |
+          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+          echo "PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools" >> $GITHUB_ENV
 
       - name: Cache Gradle packages
         uses: actions/cache@v4
@@ -56,14 +81,6 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/build.gradle') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-
-      - name: Cache Android SDK
-        uses: actions/cache@v4
-        with:
-          path: ~/.android
-          key: ${{ runner.os }}-android-sdk-${{ hashFiles('**/build.gradle*') }}
-          restore-keys: |
-            ${{ runner.os }}-android-sdk-
 
       - name: Check build prerequisites
         run: bash check-build-prerequisites.sh
@@ -105,6 +122,6 @@ jobs:
         run: |
           echo "## ✅ Build Successful" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Version:** $(grep -oP 'versionName\s*=\s*"\K[^"]+' app/build.gradle)" >> $GITHUB_STEP_SUMMARY
-          echo "**Build APK:** $(ls app/build/outputs/apk/debug/*.apk | head -1)" >> $GITHOB_STEP_SUMMARY
+          echo "**Version:** $(grep -oP 'versionName\s*=\s*\"\K[^\"]+' app/build.gradle)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           echo "**APK Size:** $(du -h app/build/outputs/apk/debug/*.apk | cut -f1)" >> $GITHUB_STEP_SUMMARY
