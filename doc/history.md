@@ -1,13 +1,12 @@
-# Event history
+# 事件历史记录
+每个宝宝页面的底部区域，会展示该宝宝近期所有已记录的照料事项。
 
-The bottom section of each child shows a list of the most recent caregiver events that were logged for a child.
+![历史记录所在位置](images/history_location-smaller.png)
 
-![Location of the event history](images/history_location-smaller.png)
+所有记录按**时间倒序**排列，向下滑动页面即可查看更早的历史记录。
 
-Each event is logged in reverse chronological order. You can scroll downwards through the list which will reveal more events from the past.
+点击记录旁的红色删除按钮，可直接删除本条记录：
 
-You can use the red delete button next to a history entry to remove it:
+![删除按钮](images/delete-smaller.png)
 
-![Delete button](images/delete-smaller.png)
-
-In addition, you can long-click any of the items. This will open the corresponding page on the Baby Buddy webapp in your browser, allowing more sophisticated ways of editing a history entry.
+此外，长按任意一条记录，会自动在浏览器中打开Baby Buddy网页端对应详情页，方便进行更多精细化编辑操作。
