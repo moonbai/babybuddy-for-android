@@ -1,36 +1,4 @@
 ---
-title: Baby Buddy for Android - Privacy Policy
-subtitle: Version $DOC_VERSION
-author:
-- Paul Konstantin Gerke
-date: 2023-03-27
-documentclass: scrartcl
-
----
-
-[Open privacy policy as PDF](https://www.pkgsoftware.eu/media/babybuddy-privacy-v1.1.pdf)
-
-This document explains how the Android app "Baby Buddy for Android"
-uses your data to provide its services, how it processes your data, and how you 
-can delete your data from the app.
-
-# Short summary
-
-The Baby Buddy for Android app (hereafter: "the app" or "this app") allows you to 
-interact with a Baby Buddy Website. For this purpose, data is stored locally on the your 
-Android device. The app does not interact with any other service, website or 
-device besides your Android device and the connected 
-[Baby Buddy Website](https://github.com/babybuddy/babybuddy).
-
-## What is stored?
-
-* This app stores the following data locally on your Android device:
-	* Login information for logging in to the Baby Buddy Website you connect the app to
-	* Copies of data from the Baby Buddy Website you connect the app to (more details in section [Baby Buddy local data](#baby-buddy-local-data))
-
-* The app does not connect with any other service, website or device. This means:
-	- The app does not communicate with any other service or website other than the Baby Buddy Website you connect the app to.
-	- The app does not store data on any other ---
 title: 安卓版 Baby Buddy - 隐私政策
 subtitle: 版本 $DOC_VERSION
 author:
