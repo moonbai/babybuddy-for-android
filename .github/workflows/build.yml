@@ -23,19 +23,24 @@ jobs:
           submodules: true
           fetch-depth: 1
 
-      - name: Initialize submodules
+      - name: Set up submodules
         run: |
           git submodule update --init --recursive
-          ls -la 3rdparty/zxing-cpp/ 2>/dev/null | head -5 || echo "zxing submodule not found"
+          ls -la 3rdparty/zxing-cpp/ 2>/dev/null | head -3 || echo "zxing submodule not initialized"
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y pandoc make gcc g++ imagemagick jq python3 python3-pip python3-venv unzip
+          sudo apt-get install -y pandoc make gcc g++ imagemagick jq python3 python3-pip unzip
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
       - name: Install Python packages
         run: |
-          python3 -m pip install --upgrade pip
+          python -m pip install --upgrade pip
           pip install pipenv cython
 
       - name: Set up JDK 17
@@ -45,119 +50,31 @@ jobs:
           distribution: 'temurin'
 
       - name: Setup Android SDK
-        run: |
-          echo "=== Finding Android SDK ==="
-          
-          SDK_ROOT=""
-          if [ -d "/opt/android-sdk" ]; then
-            SDK_ROOT="/opt/android-sdk"
-          elif [ -d "$HOME/android-sdk" ]; then
-            SDK_ROOT="$HOME/android-sdk"
-          elif [ -d "/usr/local/lib/android/sdk" ]; then
-            SDK_ROOT="/usr/local/lib/android/sdk"
-          fi
-          
-          if [ -z "$SDK_ROOT" ]; then
-            echo "ERROR: No pre-installed Android SDK found"
-            echo "Creating new SDK at /opt/android-sdk"
-            mkdir -p /opt/android-sdk
-            SDK_ROOT="/opt/android-sdk"
-          fi
-          
-          echo "Using SDK_ROOT: $SDK_ROOT"
-          export ANDROID_HOME="$SDK_ROOT"
-          export ANDROID_SDK_ROOT="$SDK_ROOT"
-          
-          echo "=== SDK Directory Contents ==="
-          ls -la "$SDK_ROOT/"
-          
-          echo "=== Finding sdkmanager ==="
-          SDKMANAGER=""
-          for path in \
-            "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" \
-            "$SDK_ROOT/cmdline-tools/12.0/bin/sdkmanager" \
-            "$SDK_ROOT/cmdline-tools/11.0/bin/sdkmanager" \
-            "$SDK_ROOT/tools/bin/sdkmanager" \
-            "$SDK_ROOT/platform-tools/sdkmanager"
-          do
-            if [ -f "$path" ]; then
-              SDKMANAGER="$path"
-              echo "Found sdkmanager: $SDKMANAGER"
-              break
-            fi
-          done
-          
-          if [ -z "$SDKMANAGER" ]; then
-            echo "ERROR: sdkmanager not found"
-            echo "Downloading Android command line tools..."
-            cd /tmp
-            curl -o cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076700_latest.zip
-            unzip -q cmdline-tools.zip
-            mkdir -p "$SDK_ROOT/cmdline-tools"
-            mv cmdline-tools "$SDK_ROOT/cmdline-tools/latest"
-            SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
-            cd -
-          fi
-          
-          echo "sdkmanager: $SDKMANAGER"
-          
-          echo "=== Accepting Licenses ==="
-          yes | $SDKMANAGER --licenses 2>/dev/null || true
-          
-          echo "=== Current Platforms ==="
-          ls -la "$SDK_ROOT/platforms/" 2>/dev/null || echo "No platforms"
-          
-          echo "=== Current Build-Tools ==="
-          ls -la "$SDK_ROOT/build-tools/" 2>/dev/null || echo "No build-tools"
-          
-          echo "=== Current NDK ==="
-          ls -la "$SDK_ROOT/ndk/" 2>/dev/null || echo "No NDK"
-          
-          echo "=== Installing Required SDK Components ==="
-          $SDKMANAGER --install "platforms;android-35" "build-tools;35.0.0" "ndk;27.0.12077973" 2>&1 || echo "Some components may already exist"
-          
-          echo "=== Final SDK Status ==="
-          echo "Platforms: $(ls $SDK_ROOT/platforms/ 2>/dev/null || echo 'none')"
-          echo "Build-Tools: $(ls $SDK_ROOT/build-tools/ 2>/dev/null || echo 'none')"
-          echo "NDK: $(ls $SDK_ROOT/ndk/ 2>/dev/null || echo 'none')"
+        uses: android-actions/setup-android@v3.2.2
 
-      - name: Set environment variables
+      - name: Build with Gradle
         run: |
-          for path in "/opt/android-sdk" "$HOME/android-sdk" "/usr/local/lib/android/sdk"; do
-            if [ -d "$path" ]; then
-              echo "ANDROID_HOME=$path" >> $GITHUB_ENV
-              echo "ANDROID_SDK_ROOT=$path" >> $GITHUB_ENV
-              echo "Set ANDROID_HOME=$path"
-              break
-            fi
-          done
-          echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
-
-      - name: Run Gradle build
-        run: |
-          echo "=== Starting Gradle Build ==="
           chmod +x gradlew
-          ./gradlew --no-daemon assembleDebug -PskipIntegrationTests --stacktrace 2>&1 | tee gradle-output.log
+          ./gradlew --no-daemon assembleDebug -PskipIntegrationTests 2>&1 | tee gradle-output.log
 
-      - name: Verify APK
+      - name: Check for APK
+        id: check_apk
         run: |
-          echo "=== Checking for APK ==="
+          echo "=== Checking for APK files ==="
           if ls app/build/outputs/apk/debug/*.apk 1> /dev/null 2>&1; then
-            echo "========================================"
-            echo "✅ Debug APK built successfully!"
-            echo "========================================"
+            echo "APK_FOUND=true" >> $GITHUB_OUTPUT
+            echo "APK_FILE=$(ls app/build/outputs/apk/debug/*.apk | head -1)" >> $GITHUB_OUTPUT
             ls -la app/build/outputs/apk/debug/
-            echo "APK Size: $(du -h app/build/outputs/apk/debug/*.apk | cut -f1)"
+            echo "APK_SIZE=$(du -h app/build/outputs/apk/debug/*.apk | cut -f1)" >> $GITHUB_OUTPUT
           else
-            echo "❌ APK not found"
-            echo "Looking for any APK files..."
-            find app/build -name "*.apk" 2>/dev/null || echo "No APK found"
-            echo "Last 50 lines of gradle output:"
-            tail -50 gradle-output.log 2>/dev/null || true
-            exit 1
+            echo "APK_FOUND=false" >> $GITHUB_OUTPUT
+            echo "=== No APK found, checking for errors ==="
+            tail -100 gradle-output.log 2>/dev/null | grep -E "(error|Error|ERROR|failed|Failed|FAILED|exception|Exception)" | head -20 || true
+            find app/build -name "*.apk" 2>/dev/null || echo "No APK anywhere in build"
           fi
 
       - name: Upload APK artifact
+        if: steps.check_apk.outputs.APK_FOUND == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: babybuddy-debug-apk
@@ -165,10 +82,17 @@ jobs:
           retention-days: 7
 
       - name: Build Summary
-        if: success()
+        if: steps.check_apk.outputs.APK_FOUND == 'true'
         run: |
           echo "## ✅ Build Successful" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Version:** $(grep -oP 'versionName\s*=\s*\"\K[^\"]+' app/build.gradle)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**APK Size:** $(du -h app/build/outputs/apk/debug/*.apk | cut -f1)" >> $GITHUB_STEP_SUMMARY
+          echo "**APK:** babybuddy-debug.apk" >> $GITHUB_STEP_SUMMARY
+          echo "**Size:** ${{ steps.check_apk.outputs.APK_SIZE }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail if no APK
+        if: steps.check_apk.outputs.APK_FOUND != 'true'
+        run: |
+          echo "❌ Build failed - no APK generated"
+          echo "Last 100 lines of build log:"
+          tail -100 gradle-output.log 2>/dev/null || true
+          exit 1
