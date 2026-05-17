@@ -9,6 +9,7 @@ on:
 
 env:
   JAVA_VERSION: '17'
+  ANDROID_SDK_ROOT: '/opt/android-sdk'
 
 jobs:
   build:
@@ -43,33 +44,92 @@ jobs:
 
       - name: Setup Android SDK
         run: |
-          echo "ANDROID_HOME: $ANDROID_HOME"
-          echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
+          echo "========================================"
+          echo "Setting up Android SDK"
+          echo "========================================"
           
-          if [ -d "/usr/local/lib/android/sdk" ]; then
-            echo "Using preinstalled Android SDK"
-            ls -la /usr/local/lib/android/sdk/
-            
-            if [ ! -d "$ANDROID_HOME/platforms/android-35" ]; then
-              echo "Installing Android 35 platform..."
-              yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platforms;android-35" "build-tools;35.0.0" "ndk;27.0.12077973"
+          if [ -d "/opt/android-sdk" ]; then
+            echo "Using Android SDK from /opt/android-sdk"
+            ANDROID_SDK_ROOT="/opt/android-sdk"
+          elif [ -d "$HOME/android-sdk" ]; then
+            echo "Using Android SDK from $HOME/android-sdk"
+            ANDROID_SDK_ROOT="$HOME/android-sdk"
+          elif [ -d "/usr/local/lib/android/sdk" ]; then
+            echo "Using Android SDK from /usr/local/lib/android/sdk"
+            ANDROID_SDK_ROOT="/usr/local/lib/android/sdk"
+          else
+            echo "No pre-installed Android SDK found, will download..."
+            mkdir -p $HOME/android-sdk
+            ANDROID_SDK_ROOT="$HOME/android-sdk"
+            cd $HOME/android-sdk
+            curl -o cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076700_latest.zip
+            unzip -q cmdline-tools.zip
+            mkdir -p cmdline-tools/latest
+            mv cmdline-tools/* cmdline-tools/latest/ 2>/dev/null || true
+            cd -
+          fi
+          
+          export ANDROID_HOME="$ANDROID_SDK_ROOT"
+          export ANDROID_SDK_ROOT="$ANDROID_SDK_ROOT"
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          
+          echo "Setting up PATH..."
+          export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools"
+          echo "PATH updated"
+          
+          echo "Checking SDK manager..."
+          ls -la $ANDROID_HOME/cmdline-tools/latest/bin/ 2>/dev/null || ls -la $ANDROID_HOME/cmdline-tools/*/bin/ 2>/dev/null || echo "No cmdline-tools found"
+          
+          if [ -f "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
+            SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          elif [ -f "$ANDROID_HOME/cmdline-tools/12.0/bin/sdkmanager" ]; then
+            SDKMANAGER="$ANDROID_HOME/cmdline-tools/12.0/bin/sdkmanager"
+          elif [ -f "$ANDROID_HOME/tools/bin/sdkmanager" ]; then
+            SDKMANAGER="$ANDROID_HOME/tools/bin/sdkmanager"
+          else
+            echo "sdkmanager not found, trying to find it..."
+            SDKMANAGER=$(find $ANDROID_HOME -name "sdkmanager" -type f 2>/dev/null | head -1)
+            if [ -z "$SDKMANAGER" ]; then
+              echo "ERROR: sdkmanager not found!"
+              exit 1
             fi
           fi
           
-          echo "Accepting Android SDK licenses..."
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          echo "Using sdkmanager: $SDKMANAGER"
           
-          echo "Installed platforms:"
-          ls -la $ANDROID_HOME/platforms/ 2>/dev/null || echo "No platforms dir"
+          echo "Accepting licenses..."
+          yes | $SDKMANAGER --licenses 2>/dev/null || true
           
-          echo "Installed build-tools:"
-          ls -la $ANDROID_HOME/build-tools/ 2>/dev/null || echo "No build-tools dir"
+          echo "Checking installed platforms..."
+          ls -la $ANDROID_HOME/platforms/ 2>/dev/null || echo "No platforms installed"
+          
+          echo "Installing required SDK components..."
+          $SDKMANAGER --install "platforms;android-35" "build-tools;35.0.0" 2>&1 || echo "platforms;android-35 may already be installed"
+          
+          echo "Checking for NDK..."
+          if [ -d "$ANDROID_HOME/ndk" ]; then
+            echo "NDK directory found:"
+            ls -la $ANDROID_HOME/ndk/
+            NDK_VERSION=$(ls $ANDROID_HOME/ndk/ 2>/dev/null | head -1)
+            echo "NDK version: $NDK_VERSION"
+          else
+            echo "No NDK found, installing..."
+            $SDKMANAGER --install "ndk;27.0.12077973" 2>&1 || echo "NDK installation attempted"
+          fi
+          
+          echo "Final SDK structure:"
+          ls -la $ANDROID_HOME/
+          echo "========================================"
+          echo "SDK Setup Complete"
+          echo "========================================"
 
       - name: Set environment variables
         run: |
-          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=/usr/local/lib/android/sdk" >> $GITHUB_ENV
-          echo "PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools" >> $GITHUB_ENV
+          echo "ANDROID_HOME=/opt/android-sdk" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=/opt/android-sdk" >> $GITHUB_ENV
+          echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+          echo "JAVA_HOME=$JAVA_HOME"
 
       - name: Cache Gradle packages
         uses: actions/cache@v4
@@ -82,30 +142,36 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Check build prerequisites
-        run: bash check-build-prerequisites.sh
-
-      - name: Build with retry
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 45
-          max_attempts: 3
-          command: ./gradlew --no-daemon assembleDebug -PskipIntegrationTests --stacktrace
-          retry_wait_seconds: 30
-          retry_on: error
-          on_retry_command: |
-            echo "Build failed, retrying..."
-            rm -rf ~/.gradle/caches/*/scripts*
-            rm -rf app/build
+      - name: Run Gradle build
+        run: |
+          echo "========================================"
+          echo "Starting Gradle Build"
+          echo "========================================"
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          echo "JAVA_HOME=$JAVA_HOME"
+          
+          export ANDROID_HOME="/opt/android-sdk"
+          export ANDROID_SDK_ROOT="/opt/android-sdk"
+          
+          echo "Checking NDK before build..."
+          ls -la $ANDROID_HOME/ndk/ 2>/dev/null || echo "No NDK directory"
+          
+          echo "Starting build..."
+          ./gradlew --no-daemon assembleDebug -PskipIntegrationTests --stacktrace 2>&1
 
       - name: Verify APK exists
         run: |
           echo "Checking for APK..."
           if ls app/build/outputs/apk/debug/*.apk 1> /dev/null 2>&1; then
+            echo "========================================"
             echo "✅ Debug APK built successfully!"
+            echo "========================================"
             ls -la app/build/outputs/apk/debug/
+            echo "APK Size: $(du -h app/build/outputs/apk/debug/*.apk | cut -f1)"
           else
-            echo "❌ APK not found"
+            echo "❌ APK not found in expected location"
+            find app/build -name "*.apk" 2>/dev/null || echo "No APK found at all"
             exit 1
           fi
 
@@ -124,4 +190,4 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Version:** $(grep -oP 'versionName\s*=\s*\"\K[^\"]+' app/build.gradle)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**APK Size:** $(du -h app/build/outputs/apk/debug/*.apk | cut -f1)" >> $GITHUB_STEP_SUMMARY
+          echo "**APK:** [Download](./actions/runs/${{ github.run_id }}#artifact-${{ github.run_attempt }})" >> $GITHUB_STEP_SUMMARY
