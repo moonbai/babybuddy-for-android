@@ -1,78 +1,72 @@
-# Development temporarily on hold due to my move to a new house
+[English](./README_en.md) | 中文
 
-Dear visitor. I was hoping to be able to resume development of the app further a bit sooner. However, I am still not finished with moving into my new place. Because this entire app is kept afloat as a hobby project next to my 9-5 job, I have to officially declare that development is on hold until my move is finished. Most importantly my PC has to move to its final location and I need to unpack my Android testing devices.
+# 开发暂时因搬家而暂停
 
-I expect development and updates to start again in the Winter 2025. Until then the app will only get attention if when it breaks. Thanks for anyone purchasing the app on the play store. It is really exciting and encouraging to me to have built something that seemingly is useful for others!
+尊敬的访客。我原本希望能早点继续开发这个应用。但目前我还没有完成搬家。因为这个应用是我在工作之余作为爱好项目维护的，我不得不正式宣布开发将暂停到搬家完成。最重要的是我的电脑需要搬到最终位置，而且我需要拆包我的安卓测试设备。
 
-# Baby Buddy for Android
+我预计将在 2025 年冬季恢复开发和更新。在此之前，只有在应用出现问题时才会处理。感谢在 Play 商店购买此应用的任何人。能够构建一个对他人有用的应用真的让我感到非常兴奋和鼓舞！
 
-Android integration for the open source web-app
-[Baby Buddy](https://docs.baby-buddy.net/)
-([Source](https://github.com/babybuddy/babybuddy)), which is optimized for
-_quick_ timer starting and stopping and diaper logging for easier logging
-while handling children.
+# 宝宝管家 for Android
 
-![Example image of the application](doc/images/demo_screenie-smaller.png)
+这是开源 Web 应用 [Baby Buddy](https://docs.baby-buddy.net/)（[源代码](https://github.com/babybuddy/babybuddy)）的安卓集成客户端，
+专门针对照顾孩子时**快速**启动和停止计时器以及记录尿布更换进行了优化。
 
-## Where to get?
+![应用示例图片](doc/images/demo_screenie-smaller.png)
 
-You can either install the [APK from the lastest release](https://github.com/babybuddy/babybuddy-for-android/releases/latest) directly or buy the app on the Google Play store:
+## 获取方式
 
-<a href='https://play.google.com/store/apps/details?id=eu.pkgsoftware.babybuddywidgets&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img height='75' alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png'/></a>
+您可以直接从 [最新版本](https://github.com/babybuddy/babybuddy-for-android/releases/latest) 安装 APK，
+也可以在 Google Play 商店购买此应用：
 
-### Third party repositories
+<a href='https://play.google.com/store/apps/details?id=eu.pkgsoftware.babybuddywidgets&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img height='75' alt='在 Google Play 上获取' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png'/></a>
 
-The app is also available in the F-Driod repository kindly provided by [@IzzySoft](https://github.com/IzzySoft)
+### 第三方仓库
 
-<a href='https://apt.izzysoft.de/packages/eu.pkgsoftware.babybuddywidgets'><img height='75' alt='Get it at IzzyOnDroid' src='https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png'/></a>
+此应用也可在 F-Droid 仓库中获取，由 [@IzzySoft](https://github.com/IzzySoft) 友情提供
 
-## User Documentation
+<a href='https://apt.izzysoft.de/packages/eu.pkgsoftware.babybuddywidgets'><img height='75' alt='在 IzzyOnDroid 获取' src='https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png'/></a>
 
-[User documentation](doc/index.md) is available as part of this repository and
-in the app as a slide show.
+## 用户文档
 
-## Build instructions
+[用户文档](doc/index.md) 可在此仓库中获取，也可以在应用内作为幻灯片查看。
 
-**Warning**: This repository uses _nonfree_ third-part resources. Redistribution
-requires attribution of the original authors. See "Licenses" section for details.
+## 构建说明
 
-Building this project requires a relatively complex series of build
-dependencies. There is a shell script `check-build-prerequisites.sh` that you
-can execute, which verifies if all build dependencies are met. However, here
-a manual list of software packages that need to be available in the build
-environment:
+**警告**：此仓库使用了**非免费**的第三方资源。重新分发需要注明原始作者。请参阅"许可证"部分了解详情。
+
+构建此项目需要一系列相对复杂的构建依赖项。
+有一个 shell 脚本 `check-build-prerequisites.sh` 可以执行，它会验证所有构建依赖项是否满足。
+但是，这里是构建环境所需软件包的完整列表：
 
 - bash + coreutils
 - curl
 - GNU make
-- gcc/g++ for building python packages (only sometimes, depends on the architecture)
-- jq (JSON query tool)
+- gcc/g++ 用于构建 python 包（仅在某些情况下需要，取决于架构）
+- jq（JSON 查询工具）
 - ImageMagick
-  - Specifically the commands: convert, composite
+  - 具体需要命令：convert, composite
 - pandoc >= 3.1.1
-- Python3 >=3.8: Used for transforming and downloading resource files for the application
-  - Python packages, can be installed using `pip`: pipenv, cython
-- JDK 17, the environment variable `JAVA_HOME` needs to point to the install path
-- Android SDK with Android NDK installed. The environment variable `ANDROID_HOME`
-    needs to poin to the Android SDK install path
+- Python3 >=3.8：用于转换和下载应用程序的资源文件
+  - Python 包，可使用 `pip` 安装：pipenv, cython
+- JDK 17，环境变量 `JAVA_HOME` 需要指向安装路径
+- 已安装 Android SDK 和 Android NDK。环境变量 `ANDROID_HOME` 需要指向 Android SDK 安装路径
 
-Next, make sure that you cloned the repository _recursively_:
+接下来，确保您已**递归**克隆了仓库：
 
 ~~~~~~.sh
 $ git submodule update --init --recursive
 ~~~~~~
 
-This will make sure that the zxing library is downloaded, ready to be built
-alongside babybuddy-for-android.
+这将确保下载 zxing 库，准备好与 babybuddy-for-android 一起构建。
 
-Now check if the build-environment is ready. It should produce output as follows:
+现在检查构建环境是否就绪。它应该产生如下输出：
 
 ~~~~~~.sh
 $ bash check-build-prerequisites.sh
 == Checking build tools ==
 Check if GNU make is installed...
 Check if curl is installed...
-Check if image magick is installed...
+Check if ImageMagick is installed...
 Check if python3, cython, and pipenv are installed...
 Check if jq is installed...
 Check if java 18.* is installed and accessible via JAVA_HOME...
@@ -84,24 +78,21 @@ Check if zxing is downloaded...
 == All required build tools and dependencies are installed ==
 ~~~~~~
 
-Next, you can use the default set of gradlew-commands to build the project
-as needed. However, when running things merely from the console, it is unlikely
-that you have an android emulator running to run the full test suite. The
-android emulator is needed for some integration tests that interface with the
-android system libraries. To run a build without running integration tests, use:
+接下来，您可以使用默认的 gradlew 命令来构建项目。
+但是，仅从控制台运行时，不太可能有可用的安卓模拟器来运行完整的测试套件。
+某些与安卓系统库交互的集成测试需要安卓模拟器。
+要构建但不运行集成测试，请使用：
 
 ~~~~~~~~.sh
 ./gradlew build -PskipIntegrationTests
 ~~~~~~~~
 
-Hope that this all works for you, happy building!
+希望这些都能正常工作，祝您构建愉快！
 
-## Licenses
+## 许可证
 
-The software (code) is made available under the MIT License.
-See [LICENSE.md](LICENSE.md) for details.
+软件（代码）采用 MIT 许可证提供。
+详情请参阅 [LICENSE.md](LICENSE.md)。
 
-In addition, this software contains _media_ published under
-non-free attribution licenses. Please see
-[the attributions page](ATTRIBUTIONS.md) for details where
-third party media was sourced and the corresponding license.
+此外，此软件包含**媒体**文件，采用非免费署名许可证。
+请参阅[署名页面](ATTRIBUTIONS.md)了解第三方媒体的来源和相应许可证。
