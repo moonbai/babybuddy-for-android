@@ -17,58 +17,110 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install Pandoc and other system requirements
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y pandoc make gcc g++ imagemagick jq
-
-      - name: Set up Python
-        uses: actions/setup-python@v5.1.0
-        with:
-          python-version: 3.12
-
-      - name: Install python packages
-        run: |
-          python -m pip install --upgrade pip
-          pip install pipenv
-          pip install cython
-
       - name: Checkout code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
         with:
           submodules: true
+          fetch-depth: 1
+
+      - name: Initialize submodules
+        run: git submodule update --init --recursive
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc make gcc g++ imagemagick jq python3 python3-pip python3-venv
+
+      - name: Install Python packages
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install pipenv cython
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4.5.0
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-      
+
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3.2.2
-
-      - name: Check build prerequisites
         run: |
-          bash check-build-prerequisites.sh
+          echo "=== Setting up Android SDK ==="
+          if [ -d "/opt/android-sdk" ]; then
+            echo "Using Android SDK from /opt/android-sdk"
+            ANDROID_SDK_ROOT="/opt/android-sdk"
+          elif [ -d "$HOME/android-sdk" ]; then
+            echo "Using Android SDK from $HOME/android-sdk"
+            ANDROID_SDK_ROOT="$HOME/android-sdk"
+          elif [ -d "/usr/local/lib/android/sdk" ]; then
+            echo "Using Android SDK from /usr/local/lib/android/sdk"
+            ANDROID_SDK_ROOT="/usr/local/lib/android/sdk"
+          else
+            echo "No pre-installed SDK found"
+            exit 1
+          fi
+          
+          export ANDROID_HOME="$ANDROID_SDK_ROOT"
+          export ANDROID_SDK_ROOT="$ANDROID_SDK_ROOT"
+          
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          ls -la "$ANDROID_HOME/"
+          
+          echo "Accepting licenses..."
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses 2>/dev/null || true
+          yes | "$ANDROID_HOME/tools/bin/sdkmanager" --licenses 2>/dev/null || true
+          
+          echo "Checking platforms..."
+          ls -la "$ANDROID_HOME/platforms/" 2>/dev/null || echo "No platforms"
+          
+          echo "Checking build-tools..."
+          ls -la "$ANDROID_HOME/build-tools/" 2>/dev/null || echo "No build-tools"
+          
+          echo "Checking NDK..."
+          ls -la "$ANDROID_HOME/ndk/" 2>/dev/null || echo "No NDK"
 
-      - name: Run gradle build
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 45
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: |
-            ./gradlew --no-daemon assembleDebug -PskipIntegrationTests --stacktrace
-            ls -la app/build/outputs/apk/debug/
+      - name: Set environment variables
+        run: |
+          if [ -d "/opt/android-sdk" ]; then
+            echo "ANDROID_HOME=/opt/android-sdk" >> $GITHUB_ENV
+            echo "ANDROID_SDK_ROOT=/opt/android-sdk" >> $GITHUB_ENV
+          elif [ -d "/usr/local/lib/android/sdk" ]; then
+            echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+            echo "ANDROID_SDK_ROOT=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+          fi
+          echo "ANDROID_HOME set to: $ANDROID_HOME"
+          echo "JAVA_HOME set to: $JAVA_HOME"
+
+      - name: Verify build prerequisites
+        run: |
+          echo "=== Verifying Prerequisites ==="
+          echo "JAVA_HOME=$JAVA_HOME"
+          "$JAVA_HOME/bin/java" -version 2>&1 || true
+          echo "---"
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          ls -la "$ANDROID_HOME/platforms/" 2>/dev/null || echo "No platforms"
+          ls -la "$ANDROID_HOME/ndk/" 2>/dev/null || echo "No NDK"
+          echo "---"
+          echo "zxing submodule:"
+          ls -la 3rdparty/zxing-cpp/ 2>/dev/null | head -10
+
+      - name: Run Gradle build
+        run: |
+          echo "=== Starting Gradle Build ==="
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleDebug -PskipIntegrationTests --stacktrace 2>&1
 
       - name: Verify APK
         run: |
           echo "Checking for APK..."
           if ls app/build/outputs/apk/debug/*.apk 1> /dev/null 2>&1; then
+            echo "========================================"
             echo "✅ Debug APK built successfully!"
+            echo "========================================"
             ls -la app/build/outputs/apk/debug/
+            echo "APK Size: $(du -h app/build/outputs/apk/debug/*.apk | cut -f1)"
           else
-            echo "❌ APK not found"
+            echo "❌ APK not found in expected location"
+            find app/build -name "*.apk" 2>/dev/null || echo "No APK found at all"
             exit 1
           fi
 
@@ -85,3 +137,5 @@ jobs:
           echo "## ✅ Build Successful" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Version:** $(grep -oP 'versionName\s*=\s*\"\K[^\"]+' app/build.gradle)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**APK Size:** $(du -h app/build/outputs/apk/debug/*.apk | cut -f1)" >> $GITHUB_STEP_SUMMARY
