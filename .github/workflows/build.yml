@@ -23,21 +23,16 @@ jobs:
           submodules: true
           fetch-depth: 1
 
-      - name: Set up submodules
+      - name: Initialize submodules
         run: |
           git submodule sync
           git submodule update --init --recursive
-          echo "=== zxing-cpp directory ==="
-          ls -la 3rdparty/zxing-cpp/ | head -5
-          echo "=== zxingcpp directory ==="
-          ls -la 3rdparty/zxing-cpp/wrappers/android/zxingcpp/ 2>/dev/null | head -5 || echo "zxingcpp not found"
-          echo "=== CMakeLists.txt path check ==="
-          cat 3rdparty/zxing-cpp/wrappers/android/zxingcpp/src/main/cpp/CMakeLists.txt | grep add_subdirectory
+          ls -la 3rdparty/zxing-cpp/
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y pandoc make gcc g++ imagemagick jq python3 python3-pip unzip curl cmake ninja-build
+          sudo apt-get install -y pandoc make gcc g++ imagemagick python3 python3-pip cmake ninja-build
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -58,99 +53,59 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3.2.2
 
-      - name: Pre-build resources
-        run: |
-          echo "=== Generating pre-build resources ==="
-          make -f resources.makefile 2>&1 || echo "resources.makefile failed, continuing..."
-          make -f help.makefile 2>&1 || echo "help.makefile failed, continuing..."
-          echo "=== Checking generated files ==="
-          ls -la app/src/main/res/values/licenses_strings.xml 2>/dev/null || echo "licenses_strings.xml not generated"
-          ls -la app/src/main/res/values/help_strings.xml 2>/dev/null || echo "help_strings.xml not generated"
-
-      - name: Build with Gradle (Debug)
-        id: gradle_build
+      - name: Build APK
         run: |
           chmod +x gradlew
           chmod +x gradlew.bat
-          chmod +x 3rdparty/zxing-cpp/wrappers/android/gradlew 2>/dev/null || true
-          echo "=== Gradle version ==="
-          ./gradlew --version
-          echo "=== Running Gradle build ==="
           ./gradlew --no-daemon clean assembleDebug -PskipIntegrationTests --stacktrace 2>&1 | tee gradle-output.log
-          GRADLE_EXIT_CODE=${PIPESTATUS[0]}
-          echo "=== Gradle exit code: $GRADLE_EXIT_CODE ==="
-          if [ $GRADLE_EXIT_CODE -ne 0 ]; then
-            echo "GRADLE_FAILED=true" >> $GITHUB_OUTPUT
-          else
-            echo "GRADLE_FAILED=false" >> $GITHUB_OUTPUT
-          fi
+          echo "===BUILD_STATUS==="
+          grep -E "BUILD (SUCCESSFUL|FAILED)" gradle-output.log || echo "No build status found"
 
-      - name: Check for APK files
-        id: check_apk
+      - name: Find APK
+        id: find_apk
         run: |
-          echo "=== Checking for APK files ==="
-          echo "Checking debug APK location..."
-          ls -la app/build/outputs/apk/debug/ 2>/dev/null || echo "Debug directory not found"
-          echo "Checking release APK location..."
-          ls -la app/build/outputs/apk/release/ 2>/dev/null || echo "Release directory not found"
-          echo "Finding all APK files..."
-          find app/build -name "*.apk" -type f 2>/dev/null || echo "No APK files found"
-          echo "=== Complete build directory structure ==="
-          find app/build -type f 2>/dev/null | head -100 || echo "No files in app/build"
-          echo "=== Checking outputs directory ==="
-          find app/build/outputs -type f 2>/dev/null | head -50 || echo "No files in outputs"
-          if ls app/build/outputs/apk/debug/*.apk 1> /dev/null 2>&1; then
+          echo "=== Checking for APK ==="
+          APK_FILE=$(find app/build -name "*.apk" -type f 2>/dev/null | head -1)
+          if [ -n "$APK_FILE" ] && [ -f "$APK_FILE" ]; then
             echo "APK_FOUND=true" >> $GITHUB_OUTPUT
-            echo "APK_FILE=$(ls app/build/outputs/apk/debug/*.apk | head -1)" >> $GITHUB_OUTPUT
-            ls -la app/build/outputs/apk/debug/
-            echo "APK_SIZE=$(du -h app/build/outputs/apk/debug/*.apk | cut -f1)" >> $GITHUB_OUTPUT
+            echo "APK_FILE=$APK_FILE" >> $GITHUB_OUTPUT
+            echo "APK_SIZE=$(du -h "$APK_FILE" | cut -f1)" >> $GITHUB_OUTPUT
+            echo "Found APK: $APK_FILE"
+            ls -la "$APK_FILE"
           else
             echo "APK_FOUND=false" >> $GITHUB_OUTPUT
-            echo "=== Last 100 lines of build log ==="
-            tail -100 gradle-output.log
-            echo "=== Build log errors ==="
-            tail -500 gradle-output.log | grep -E "(error|Error|ERROR|failed|Failed|FAILED|exception|Exception)" | head -50 || true
-            echo "=== Gradle build result ==="
-            grep -E "(BUILD SUCCESSFUL|BUILD FAILED)" gradle-output.log || true
-            echo "=== Checking build directory ==="
-            find app/build -type f -name "*.so" 2>/dev/null | head -20 || echo "No .so files found"
-            find app/build -type f -name "*.aar" 2>/dev/null | head -20 || echo "No .aar files found"
+            echo "No APK found!"
+            echo "=== Build directory contents ==="
+            find app/build -type f 2>/dev/null | head -50 || echo "No files"
+            echo "=== Last 50 lines of build log ==="
+            tail -50 gradle-output.log
           fi
 
-      - name: Upload build directory structure
-        if: steps.check_apk.outputs.APK_FOUND != 'true'
-        run: |
-          echo "=== Uploading build directory for debugging ==="
-          find app/build -type f 2>/dev/null | head -500 > build-structure.txt
-          ls -la app/build 2>/dev/null || echo "No app/build directory"
-          find app/build/outputs 2>/dev/null || echo "No outputs directory"
-
-      - name: Upload APK artifact
-        if: steps.check_apk.outputs.APK_FOUND == 'true'
+      - name: Upload APK
+        if: steps.find_apk.outputs.APK_FOUND == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: babybuddy-debug-apk
           path: app/build/outputs/apk/debug/*.apk
           retention-days: 7
 
-      - name: Upload build logs
+      - name: Upload logs
         uses: actions/upload-artifact@v4
         with:
-          name: gradle-build-logs
+          name: gradle-logs
           path: gradle-output.log
           retention-days: 7
 
-      - name: Build Summary
-        if: steps.check_apk.outputs.APK_FOUND == 'true'
+      - name: Success
+        if: steps.find_apk.outputs.APK_FOUND == 'true'
         run: |
-          echo "## ✅ Build Successful" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## ✅ Build Successful!" >> $GITHUB_STEP_SUMMARY
           echo "**APK:** babybuddy-debug.apk" >> $GITHUB_STEP_SUMMARY
-          echo "**Size:** ${{ steps.check_apk.outputs.APK_SIZE }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Size:** ${{ steps.find_apk.outputs.APK_SIZE }}" >> $GITHUB_STEP_SUMMARY
 
-      - name: Fail if no APK
-        if: steps.check_apk.outputs.APK_FOUND != 'true'
+      - name: Fail
+        if: steps.find_apk.outputs.APK_FOUND != 'true'
         run: |
           echo "❌ Build failed - no APK generated"
-          echo "Full build log available in artifacts"
+          tail -100 gradle-output.log
           exit 1
