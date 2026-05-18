@@ -25,13 +25,17 @@ jobs:
 
       - name: Set up submodules
         run: |
+          git submodule sync
           git submodule update --init --recursive
-          ls -la 3rdparty/zxing-cpp/ 2>/dev/null | head -3 || echo "zxing submodule not initialized"
+          echo "=== zxing-cpp directory ==="
+          ls -la 3rdparty/zxing-cpp/ | head -5
+          echo "=== zxingcpp directory ==="
+          ls -la 3rdparty/zxing-cpp/wrappers/android/zxingcpp/ 2>/dev/null | head -5 || echo "zxingcpp not found"
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y pandoc make gcc g++ imagemagick jq python3 python3-pip unzip curl
+          sudo apt-get install -y pandoc make gcc g++ imagemagick jq python3 python3-pip unzip curl cmake ninja-build
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -52,10 +56,16 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3.2.2
 
-      - name: Build with Gradle (Debug + Release)
+      - name: Build with Gradle (Debug)
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon assembleDebug assembleRelease -PskipIntegrationTests 2>&1 | tee gradle-output.log
+          chmod +x gradlew.bat
+          chmod +x 3rdparty/zxing-cpp/wrappers/android/gradlew 2>/dev/null || true
+          echo "=== Gradle version ==="
+          ./gradlew --version
+          echo "=== Running Gradle build ==="
+          ./gradlew --no-daemon assembleDebug -PskipIntegrationTests --info 2>&1 | tee gradle-output.log
+          echo "=== Build finished ==="
 
       - name: Check for APK files
         id: check_apk
@@ -74,10 +84,15 @@ jobs:
             echo "APK_SIZE=$(du -h app/build/outputs/apk/debug/*.apk | cut -f1)" >> $GITHUB_OUTPUT
           else
             echo "APK_FOUND=false" >> $GITHUB_OUTPUT
+            echo "=== Last 50 lines of build log ==="
+            tail -50 gradle-output.log
             echo "=== Build log errors ==="
-            tail -200 gradle-output.log | grep -E "(error|Error|ERROR|failed|Failed|FAILED|exception|Exception)" | head -30 || true
+            tail -500 gradle-output.log | grep -E "(error|Error|ERROR|failed|Failed|FAILED|exception|Exception)" | head -50 || true
             echo "=== Gradle build result ==="
             grep -E "(BUILD SUCCESSFUL|BUILD FAILED)" gradle-output.log || true
+            echo "=== Checking build directory ==="
+            find app/build -type f -name "*.so" 2>/dev/null | head -20 || echo "No .so files found"
+            find app/build -type f -name "*.aar" 2>/dev/null | head -20 || echo "No .aar files found"
           fi
 
       - name: Upload APK artifact
@@ -86,6 +101,13 @@ jobs:
         with:
           name: babybuddy-debug-apk
           path: app/build/outputs/apk/debug/*.apk
+          retention-days: 7
+
+      - name: Upload build logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradle-build-logs
+          path: gradle-output.log
           retention-days: 7
 
       - name: Build Summary
@@ -100,6 +122,5 @@ jobs:
         if: steps.check_apk.outputs.APK_FOUND != 'true'
         run: |
           echo "❌ Build failed - no APK generated"
-          echo "Last 100 lines of build log:"
-          tail -100 gradle-output.log 2>/dev/null || true
+          echo "Full build log available in artifacts"
           exit 1
