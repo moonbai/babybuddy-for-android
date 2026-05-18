@@ -28,6 +28,7 @@ jobs:
           git submodule sync
           git submodule update --init --recursive
           ls -la 3rdparty/zxing-cpp/
+          ls -la 3rdparty/zxing-cpp/wrappers/android/zxingcpp/
 
       - name: Install system dependencies
         run: |
@@ -53,41 +54,49 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3.2.2
 
-      - name: Build APK
+      - name: Check zxingcpp CMakeLists
+        run: |
+          echo "=== CMakeLists.txt content ==="
+          cat 3rdparty/zxing-cpp/wrappers/android/zxingcpp/src/main/cpp/CMakeLists.txt
+
+      - name: Check patched build.gradle
+        run: |
+          echo "=== patched build.gradle content ==="
+          cat 3rdparty/patched-zxing-build.gradle
+
+      - name: Build APK with verbose output
         run: |
           chmod +x gradlew
           chmod +x gradlew.bat
-          echo "=== Running preBuild tasks ==="
-          ./gradlew --no-daemon preBuild --stacktrace 2>&1 | tee prebuild-output.log || true
-          echo "=== Running build tasks ==="
-          ./gradlew --no-daemon assembleDebug -PskipIntegrationTests --stacktrace 2>&1 | tee gradle-output.log
-          echo "===BUILD_STATUS==="
-          grep -E "BUILD (SUCCESSFUL|FAILED)" gradle-output.log || echo "No build status found"
-          echo "===PREBUILD_STATUS==="
-          grep -E "BUILD (SUCCESSFUL|FAILED)|(error|Error|FAILED)" prebuild-output.log | head -20 || true
+          echo "=== Listing available tasks ==="
+          ./gradlew tasks --all 2>&1 | grep -i "assemble" | head -20 || true
+          echo "=== Running assembleDebug ==="
+          ./gradlew --no-daemon clean assembleDebug -PskipIntegrationTests --info 2>&1 | tee gradle-output.log
+          GRADLE_EXIT=${PIPESTATUS[0]}
+          echo "=== Gradle exit code: $GRADLE_EXIT ==="
 
-      - name: Find APK
-        id: find_apk
+      - name: Check build results
+        id: check_build
         run: |
-          echo "=== Checking for APK ==="
-          APK_FILE=$(find app/build -name "*.apk" -type f 2>/dev/null | head -1)
-          if [ -n "$APK_FILE" ] && [ -f "$APK_FILE" ]; then
+          echo "=== Searching for APK files ==="
+          APK_LIST=$(find app/build -name "*.apk" -type f 2>/dev/null)
+          if [ -n "$APK_LIST" ]; then
+            echo "Found APK files:"
+            echo "$APK_LIST"
             echo "APK_FOUND=true" >> $GITHUB_OUTPUT
-            echo "APK_FILE=$APK_FILE" >> $GITHUB_OUTPUT
-            echo "APK_SIZE=$(du -h "$APK_FILE" | cut -f1)" >> $GITHUB_OUTPUT
-            echo "Found APK: $APK_FILE"
-            ls -la "$APK_FILE"
           else
+            echo "No APK files found"
             echo "APK_FOUND=false" >> $GITHUB_OUTPUT
-            echo "No APK found!"
-            echo "=== Build directory contents ==="
-            find app/build -type f 2>/dev/null | head -50 || echo "No files"
-            echo "=== Last 50 lines of build log ==="
-            tail -50 gradle-output.log
+            echo "=== Build directory structure ==="
+            find app/build -type d 2>/dev/null | head -30
+            echo "=== Build directory files ==="
+            find app/build -type f 2>/dev/null | head -50
+            echo "=== Last 200 lines of build log ==="
+            tail -200 gradle-output.log
           fi
 
       - name: Upload APK
-        if: steps.find_apk.outputs.APK_FOUND == 'true'
+        if: steps.check_build.outputs.APK_FOUND == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: babybuddy-debug-apk
@@ -101,16 +110,8 @@ jobs:
           path: gradle-output.log
           retention-days: 7
 
-      - name: Success
-        if: steps.find_apk.outputs.APK_FOUND == 'true'
-        run: |
-          echo "## ✅ Build Successful!" >> $GITHUB_STEP_SUMMARY
-          echo "**APK:** babybuddy-debug.apk" >> $GITHUB_STEP_SUMMARY
-          echo "**Size:** ${{ steps.find_apk.outputs.APK_SIZE }}" >> $GITHUB_STEP_SUMMARY
-
-      - name: Fail
-        if: steps.find_apk.outputs.APK_FOUND != 'true'
+      - name: Build failed
+        if: steps.check_build.outputs.APK_FOUND != 'true'
         run: |
           echo "❌ Build failed - no APK generated"
-          tail -100 gradle-output.log
           exit 1
