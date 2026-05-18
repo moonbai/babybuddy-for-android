@@ -31,7 +31,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y pandoc make gcc g++ imagemagick cmake ninja-build unzip
+          sudo apt-get install -y pandoc make gcc g++ imagemagick cmake ninja-build unzip curl
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -41,7 +41,7 @@ jobs:
       - name: Install Python packages
         run: |
           python -m pip install --upgrade pip
-          pip install pipenv cython
+          pip install pipenv cython pyyaml
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -55,6 +55,30 @@ jobs:
       - name: Run Gradle build
         run: |
           chmod +x gradlew
+          
+          echo "=== Checking build prerequisites ==="
+          echo "Java version:"
+          java -version 2>&1 || true
+          echo ""
+          echo "Android SDK:"
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          ls -la $ANDROID_HOME 2>/dev/null || echo "ANDROID_HOME not found"
+          echo ""
+          echo "Make version:"
+          make --version 2>&1 | head -1 || echo "make not found"
+          echo ""
+          echo "ImageMagick version:"
+          convert --version 2>&1 | head -1 || echo "convert not found"
+          echo ""
+          echo "pipenv version:"
+          pipenv --version 2>&1 || echo "pipenv not found"
+          echo ""
+          
+          echo "=== Running preBuild tasks first ==="
+          ./gradlew --no-daemon preBuild 2>&1 | tee prebuild-output.log || true
+          echo "=== PreBuild done ==="
+          
+          echo "=== Running full build ==="
           ./gradlew --no-daemon clean assembleDebug -PskipIntegrationTests 2>&1 | tee gradle-output.log || true
           echo "===BUILD_DONE==="
 
@@ -85,10 +109,14 @@ jobs:
             echo "Build FAILED - No APK found"
             echo "=== Checking if app/build exists ==="
             ls -la app/build/ 2>/dev/null || echo "app/build directory does not exist"
+            echo "=== PreBuild log summary ==="
+            tail -100 prebuild-output.log 2>/dev/null || echo "No prebuild log"
             echo "=== Build log summary ==="
             tail -100 gradle-output.log 2>/dev/null || echo "No build log"
             echo "=== Looking for .so files ==="
             find app/build -name "*.so" 2>/dev/null | head -20 || echo "No .so files"
+            echo "=== Checking for CMake native errors ==="
+            grep -i "cmake\|ninja\|native\|zxing" gradle-output.log 2>/dev/null | tail -30 || echo "No CMake/native errors found"
           fi
 
       - name: Upload APK artifact
@@ -99,16 +127,18 @@ jobs:
           path: app/build/outputs/apk/debug/*.apk
           retention-days: 7
 
-      - name: Upload build log
+      - name: Upload build logs
         uses: actions/upload-artifact@v4
         with:
-          name: gradle-build-log
-          path: gradle-output.log
+          name: gradle-build-logs
+          path: |
+            gradle-output.log
+            prebuild-output.log
           retention-days: 7
 
       - name: Fail if no APK
         if: steps.check_results.outputs.APK_FOUND != 'true'
         run: |
           echo "❌ Build failed - no APK generated"
-          echo "Check the gradle-build-log artifact for details"
+          echo "Check the gradle-build-logs artifact for details (includes prebuild and build logs)"
           exit 1
