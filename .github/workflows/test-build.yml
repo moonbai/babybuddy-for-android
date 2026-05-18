@@ -1,0 +1,38 @@
+name: Test Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Init submodules
+        run: |
+          git submodule update --init --recursive
+          ls 3rdparty/zxing-cpp/wrappers/android/zxingcpp/
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3.2.2
+
+      - name: Run Gradle
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug 2>&1 || echo "Build failed"
+
+      - name: Find files
+        run: |
+          find app/build -type f | head -50
+          find app/build -name "*.apk"
