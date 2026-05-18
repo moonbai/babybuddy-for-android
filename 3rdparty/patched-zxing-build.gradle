@@ -25,7 +25,7 @@ android {
     externalNativeBuild {
         cmake {
             path file('src/main/cpp/CMakeLists.txt')
-            cppFlags "-DCMAKE_BUILD_TYPE=RelWithDebInfo"
+            arguments += ["-DCMAKE_BUILD_TYPE=RelWithDebInfo"]
         }
     }
     lint {
