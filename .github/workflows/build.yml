@@ -95,6 +95,10 @@ jobs:
           ls -la app/build/outputs/apk/release/ 2>/dev/null || echo "Release directory not found"
           echo "Finding all APK files..."
           find app/build -name "*.apk" -type f 2>/dev/null || echo "No APK files found"
+          echo "=== Complete build directory structure ==="
+          find app/build -type f 2>/dev/null | head -100 || echo "No files in app/build"
+          echo "=== Checking outputs directory ==="
+          find app/build/outputs -type f 2>/dev/null | head -50 || echo "No files in outputs"
           if ls app/build/outputs/apk/debug/*.apk 1> /dev/null 2>&1; then
             echo "APK_FOUND=true" >> $GITHUB_OUTPUT
             echo "APK_FILE=$(ls app/build/outputs/apk/debug/*.apk | head -1)" >> $GITHUB_OUTPUT
@@ -112,6 +116,14 @@ jobs:
             find app/build -type f -name "*.so" 2>/dev/null | head -20 || echo "No .so files found"
             find app/build -type f -name "*.aar" 2>/dev/null | head -20 || echo "No .aar files found"
           fi
+
+      - name: Upload build directory structure
+        if: steps.check_apk.outputs.APK_FOUND != 'true'
+        run: |
+          echo "=== Uploading build directory for debugging ==="
+          find app/build -type f 2>/dev/null | head -500 > build-structure.txt
+          ls -la app/build 2>/dev/null || echo "No app/build directory"
+          find app/build/outputs 2>/dev/null || echo "No outputs directory"
 
       - name: Upload APK artifact
         if: steps.check_apk.outputs.APK_FOUND == 'true'
