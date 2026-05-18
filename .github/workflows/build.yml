@@ -27,13 +27,11 @@ jobs:
         run: |
           git submodule sync
           git submodule update --init --recursive
-          ls -la 3rdparty/zxing-cpp/
-          ls -la 3rdparty/zxing-cpp/wrappers/android/zxingcpp/
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y pandoc make gcc g++ imagemagick python3 python3-pip cmake ninja-build
+          sudo apt-get install -y pandoc make gcc g++ imagemagick cmake ninja-build unzip
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -54,92 +52,63 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3.2.2
 
-      - name: Check zxingcpp CMakeLists
-        run: |
-          echo "=== CMakeLists.txt content ==="
-          cat 3rdparty/zxing-cpp/wrappers/android/zxingcpp/src/main/cpp/CMakeLists.txt
-
-      - name: Check patched build.gradle
-        run: |
-          echo "=== patched build.gradle content ==="
-          cat 3rdparty/patched-zxing-build.gradle
-
-      - name: Build APK with verbose output
+      - name: Run Gradle build
         run: |
           chmod +x gradlew
-          chmod +x gradlew.bat
-          echo "=== Listing available tasks ==="
-          ./gradlew tasks --all 2>&1 | grep -i "assemble" | head -20 || true
-          echo "=== Running assembleDebug ==="
-          set +e
-          ./gradlew --no-daemon clean assembleDebug -PskipIntegrationTests --info 2>&1 | tee gradle-output.log
-          GRADLE_EXIT=$?
-          set -e
-          echo "=== Gradle exit code: $GRADLE_EXIT ==="
-          if [ $GRADLE_EXIT -ne 0 ]; then
-            echo "GRADLE_FAILED=true" >> $GITHUB_OUTPUT
-            echo "Build failed with exit code $GRADLE_EXIT" | tee -a gradle-output.log
-          fi
-          echo "=== Checking if gradle-output.log exists ==="
-          ls -la gradle-output.log 2>/dev/null || echo "gradle-output.log NOT CREATED"
+          ./gradlew --no-daemon clean assembleDebug -PskipIntegrationTests 2>&1 | tee gradle-output.log || true
+          echo "===BUILD_DONE==="
 
       - name: Check build results
-        id: check_build
+        id: check_results
         run: |
-          echo "=== Searching for APK files ==="
-          APK_LIST=$(find app/build -name "*.apk" -type f 2>/dev/null)
-          if [ -n "$APK_LIST" ]; then
-            echo "Found APK files:"
-            echo "$APK_LIST"
-            echo "APK_FOUND=true" >> $GITHUB_OUTPUT
+          echo "=== Checking APK location ==="
+          if [ -d "app/build/outputs/apk/debug" ]; then
+            echo "Debug directory exists"
+            ls -la app/build/outputs/apk/debug/ || true
           else
-            echo "No APK files found"
+            echo "Debug directory does NOT exist"
+          fi
+          
+          echo "=== Looking for APK files ==="
+          APK_FOUND=false
+          for apk in $(find app/build -name "*.apk" 2>/dev/null); do
+            echo "Found APK: $apk"
+            ls -la "$apk"
+            APK_FOUND=true
+          done
+          
+          if [ "$APK_FOUND" = "true" ]; then
+            echo "APK_FOUND=true" >> $GITHUB_OUTPUT
+            echo "Build SUCCESS - APK found!"
+          else
             echo "APK_FOUND=false" >> $GITHUB_OUTPUT
-            echo "=== Checking gradle-output.log tail ==="
-            if [ -f gradle-output.log ]; then
-              tail -300 gradle-output.log | grep -E "(BUILD|error|Error|FAILED|assemble|cmake|CMake)" | head -100
-            else
-              echo "gradle-output.log not found"
-            fi
-            echo "=== Build directory structure ==="
-            find app/build -type d 2>/dev/null | head -30
-            echo "=== Build directory files ==="
-            find app/build -type f 2>/dev/null | head -100
-            echo "=== Listing intermediates directories ==="
-            find app/build -type d -name "intermediates" 2>/dev/null | head -10
-            echo "=== Listing outputs directories ==="
-            find app/build -type d -name "outputs" 2>/dev/null | head -10
-            echo "=== Last 300 lines of build log ==="
-            tail -300 gradle-output.log
+            echo "Build FAILED - No APK found"
+            echo "=== Checking if app/build exists ==="
+            ls -la app/build/ 2>/dev/null || echo "app/build directory does not exist"
+            echo "=== Build log summary ==="
+            tail -100 gradle-output.log 2>/dev/null || echo "No build log"
+            echo "=== Looking for .so files ==="
+            find app/build -name "*.so" 2>/dev/null | head -20 || echo "No .so files"
           fi
 
-      - name: Upload APK
-        if: steps.check_build.outputs.APK_FOUND == 'true'
+      - name: Upload APK artifact
+        if: steps.check_results.outputs.APK_FOUND == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: babybuddy-debug-apk
           path: app/build/outputs/apk/debug/*.apk
           retention-days: 7
 
-      - name: Upload logs
-        run: |
-          echo "=== Checking for log file ==="
-          if [ -f gradle-output.log ]; then
-            echo "Log file exists, uploading..."
-          else
-            echo "Log file does NOT exist"
-            echo "Build did not create log file" > gradle-output.log
-          fi
-
-      - name: Upload log artifact
+      - name: Upload build log
         uses: actions/upload-artifact@v4
         with:
-          name: gradle-logs
+          name: gradle-build-log
           path: gradle-output.log
           retention-days: 7
 
-      - name: Build failed
-        if: steps.check_build.outputs.APK_FOUND != 'true'
+      - name: Fail if no APK
+        if: steps.check_results.outputs.APK_FOUND != 'true'
         run: |
           echo "❌ Build failed - no APK generated"
+          echo "Check the gradle-build-log artifact for details"
           exit 1
