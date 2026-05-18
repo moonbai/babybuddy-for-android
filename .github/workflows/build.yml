@@ -52,15 +52,21 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3.2.2
 
-      - name: Build with Gradle
+      - name: Build with Gradle (Debug + Release)
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon assembleDebug -PskipIntegrationTests 2>&1 | tee gradle-output.log
+          ./gradlew --no-daemon assembleDebug assembleRelease -PskipIntegrationTests 2>&1 | tee gradle-output.log
 
-      - name: Check for APK
+      - name: Check for APK files
         id: check_apk
         run: |
           echo "=== Checking for APK files ==="
+          echo "Checking debug APK location..."
+          ls -la app/build/outputs/apk/debug/ 2>/dev/null || echo "Debug directory not found"
+          echo "Checking release APK location..."
+          ls -la app/build/outputs/apk/release/ 2>/dev/null || echo "Release directory not found"
+          echo "Finding all APK files..."
+          find app/build -name "*.apk" -type f 2>/dev/null || echo "No APK files found"
           if ls app/build/outputs/apk/debug/*.apk 1> /dev/null 2>&1; then
             echo "APK_FOUND=true" >> $GITHUB_OUTPUT
             echo "APK_FILE=$(ls app/build/outputs/apk/debug/*.apk | head -1)" >> $GITHUB_OUTPUT
@@ -68,9 +74,10 @@ jobs:
             echo "APK_SIZE=$(du -h app/build/outputs/apk/debug/*.apk | cut -f1)" >> $GITHUB_OUTPUT
           else
             echo "APK_FOUND=false" >> $GITHUB_OUTPUT
-            echo "=== No APK found, checking for errors ==="
-            tail -100 gradle-output.log 2>/dev/null | grep -E "(error|Error|ERROR|failed|Failed|FAILED|exception|Exception)" | head -20 || true
-            find app/build -name "*.apk" 2>/dev/null || echo "No APK anywhere in build"
+            echo "=== Build log errors ==="
+            tail -200 gradle-output.log | grep -E "(error|Error|ERROR|failed|Failed|FAILED|exception|Exception)" | head -30 || true
+            echo "=== Gradle build result ==="
+            grep -E "(BUILD SUCCESSFUL|BUILD FAILED)" gradle-output.log || true
           fi
 
       - name: Upload APK artifact
