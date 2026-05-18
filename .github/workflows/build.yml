@@ -71,9 +71,17 @@ jobs:
           echo "=== Listing available tasks ==="
           ./gradlew tasks --all 2>&1 | grep -i "assemble" | head -20 || true
           echo "=== Running assembleDebug ==="
+          set +e
           ./gradlew --no-daemon clean assembleDebug -PskipIntegrationTests --info 2>&1 | tee gradle-output.log
-          GRADLE_EXIT=${PIPESTATUS[0]}
+          GRADLE_EXIT=$?
+          set -e
           echo "=== Gradle exit code: $GRADLE_EXIT ==="
+          if [ $GRADLE_EXIT -ne 0 ]; then
+            echo "GRADLE_FAILED=true" >> $GITHUB_OUTPUT
+            echo "Build failed with exit code $GRADLE_EXIT" | tee -a gradle-output.log
+          fi
+          echo "=== Checking if gradle-output.log exists ==="
+          ls -la gradle-output.log 2>/dev/null || echo "gradle-output.log NOT CREATED"
 
       - name: Check build results
         id: check_build
@@ -104,6 +112,16 @@ jobs:
           retention-days: 7
 
       - name: Upload logs
+        run: |
+          echo "=== Checking for log file ==="
+          if [ -f gradle-output.log ]; then
+            echo "Log file exists, uploading..."
+          else
+            echo "Log file does NOT exist"
+            echo "Build did not create log file" > gradle-output.log
+          fi
+
+      - name: Upload log artifact
         uses: actions/upload-artifact@v4
         with:
           name: gradle-logs
