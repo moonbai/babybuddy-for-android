@@ -33,6 +33,24 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y pandoc make gcc g++ imagemagick cmake ninja-build unzip curl
 
+      - name: Generate placeholder icons
+        run: |
+          echo "=== Generating placeholder drawable icons ==="
+          mkdir -p app/src/main/res/drawable-mdpi
+          mkdir -p app/src/main/res/drawable-hdpi
+          mkdir -p app/src/main/res/drawable-xhdpi
+          mkdir -p app/src/main/res/drawable-xxhdpi
+          mkdir -p app/src/main/res/drawable-xxxhdpi
+          
+          for icon in pkg_bottle pkg_diaper pkg_sleep pkg_notes pkg_pumping pkg_crawl pkg_wet pkg_poop pkg_not_wet pkg_no_poop pkg_no_notes pkg_breast pkg_breast_left pkg_breast_right pkg_solid_food pkg_app_icon_foreground; do
+            convert -size 24x24 xc:gray50 "app/src/main/res/drawable-mdpi/${icon}.png"
+            convert -size 36x36 xc:gray50 "app/src/main/res/drawable-hdpi/${icon}.png"
+            convert -size 48x48 xc:gray50 "app/src/main/res/drawable-xhdpi/${icon}.png"
+            convert -size 72x72 xc:gray50 "app/src/main/res/drawable-xxhdpi/${icon}.png"
+            convert -size 96x96 xc:gray50 "app/src/main/res/drawable-xxxhdpi/${icon}.png"
+          done
+          echo "=== Placeholder icons created ==="
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
