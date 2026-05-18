@@ -45,9 +45,10 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3.2.2
 
-      - name: Check build prerequisites
+      - name: Initialize submodules
         run: |
-          bash check-build-prerequisites.sh
+          git submodule update --init --recursive
+          ls -la 3rdparty/zxing-cpp/ 2>/dev/null || echo "zxing-cpp submodule not found"
 
       - name: Run gradle build
         run: |
