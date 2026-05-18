@@ -95,12 +95,22 @@ jobs:
           else
             echo "No APK files found"
             echo "APK_FOUND=false" >> $GITHUB_OUTPUT
+            echo "=== Checking gradle-output.log tail ==="
+            if [ -f gradle-output.log ]; then
+              tail -300 gradle-output.log | grep -E "(BUILD|error|Error|FAILED|assemble|cmake|CMake)" | head -100
+            else
+              echo "gradle-output.log not found"
+            fi
             echo "=== Build directory structure ==="
             find app/build -type d 2>/dev/null | head -30
             echo "=== Build directory files ==="
-            find app/build -type f 2>/dev/null | head -50
-            echo "=== Last 200 lines of build log ==="
-            tail -200 gradle-output.log
+            find app/build -type f 2>/dev/null | head -100
+            echo "=== Listing intermediates directories ==="
+            find app/build -type d -name "intermediates" 2>/dev/null | head -10
+            echo "=== Listing outputs directories ==="
+            find app/build -type d -name "outputs" 2>/dev/null | head -10
+            echo "=== Last 300 lines of build log ==="
+            tail -300 gradle-output.log
           fi
 
       - name: Upload APK
