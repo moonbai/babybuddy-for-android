@@ -31,6 +31,8 @@ jobs:
           ls -la 3rdparty/zxing-cpp/ | head -5
           echo "=== zxingcpp directory ==="
           ls -la 3rdparty/zxing-cpp/wrappers/android/zxingcpp/ 2>/dev/null | head -5 || echo "zxingcpp not found"
+          echo "=== CMakeLists.txt path check ==="
+          cat 3rdparty/zxing-cpp/wrappers/android/zxingcpp/src/main/cpp/CMakeLists.txt | grep add_subdirectory
 
       - name: Install system dependencies
         run: |
@@ -56,7 +58,17 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3.2.2
 
+      - name: Pre-build resources
+        run: |
+          echo "=== Generating pre-build resources ==="
+          make -f resources.makefile 2>&1 || echo "resources.makefile failed, continuing..."
+          make -f help.makefile 2>&1 || echo "help.makefile failed, continuing..."
+          echo "=== Checking generated files ==="
+          ls -la app/src/main/res/values/licenses_strings.xml 2>/dev/null || echo "licenses_strings.xml not generated"
+          ls -la app/src/main/res/values/help_strings.xml 2>/dev/null || echo "help_strings.xml not generated"
+
       - name: Build with Gradle (Debug)
+        id: gradle_build
         run: |
           chmod +x gradlew
           chmod +x gradlew.bat
@@ -64,8 +76,14 @@ jobs:
           echo "=== Gradle version ==="
           ./gradlew --version
           echo "=== Running Gradle build ==="
-          ./gradlew --no-daemon assembleDebug -PskipIntegrationTests --info 2>&1 | tee gradle-output.log
-          echo "=== Build finished ==="
+          ./gradlew --no-daemon clean assembleDebug -PskipIntegrationTests --stacktrace 2>&1 | tee gradle-output.log
+          GRADLE_EXIT_CODE=${PIPESTATUS[0]}
+          echo "=== Gradle exit code: $GRADLE_EXIT_CODE ==="
+          if [ $GRADLE_EXIT_CODE -ne 0 ]; then
+            echo "GRADLE_FAILED=true" >> $GITHUB_OUTPUT
+          else
+            echo "GRADLE_FAILED=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Check for APK files
         id: check_apk
@@ -84,8 +102,8 @@ jobs:
             echo "APK_SIZE=$(du -h app/build/outputs/apk/debug/*.apk | cut -f1)" >> $GITHUB_OUTPUT
           else
             echo "APK_FOUND=false" >> $GITHUB_OUTPUT
-            echo "=== Last 50 lines of build log ==="
-            tail -50 gradle-output.log
+            echo "=== Last 100 lines of build log ==="
+            tail -100 gradle-output.log
             echo "=== Build log errors ==="
             tail -500 gradle-output.log | grep -E "(error|Error|ERROR|failed|Failed|FAILED|exception|Exception)" | head -50 || true
             echo "=== Gradle build result ==="
