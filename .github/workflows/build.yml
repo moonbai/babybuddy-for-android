@@ -57,9 +57,14 @@ jobs:
         run: |
           chmod +x gradlew
           chmod +x gradlew.bat
-          ./gradlew --no-daemon clean assembleDebug -PskipIntegrationTests --stacktrace 2>&1 | tee gradle-output.log
+          echo "=== Running preBuild tasks ==="
+          ./gradlew --no-daemon preBuild --stacktrace 2>&1 | tee prebuild-output.log || true
+          echo "=== Running build tasks ==="
+          ./gradlew --no-daemon assembleDebug -PskipIntegrationTests --stacktrace 2>&1 | tee gradle-output.log
           echo "===BUILD_STATUS==="
           grep -E "BUILD (SUCCESSFUL|FAILED)" gradle-output.log || echo "No build status found"
+          echo "===PREBUILD_STATUS==="
+          grep -E "BUILD (SUCCESSFUL|FAILED)|(error|Error|FAILED)" prebuild-output.log | head -20 || true
 
       - name: Find APK
         id: find_apk
