@@ -1,50 +1,52 @@
-# 时长记录功能设置
-时长记录依托Baby Buddy计时功能，多位看护人可共用同一组计时器。
-若当前宝宝暂无任何计时项目，应用会提示**创建默认计时器**：
+# Setup for time logging
 
-![创建默认计时器按钮](images/timer_empty_list-smaller.png)
+The time logging feature uses Baby Buddy's timer feature so that multiple caregivers can stop the same set of timers. In the simplest case, you have a child that has no registered timers configured. In this case, the app will present you with the option to "create default timers":
 
-点击后，客户端会自动在服务端生成三套常用计时项目，对应三大育儿记录场景：
-- 俯趴时间
-- 睡眠时间
-- 喂养时长
+![Create default timers button](images/timer_empty_list-smaller.png)
 
-效果如下：
+When clicking the button, the app will automatically create a set of timers on the server for you with default names corresponding to the three main activities that can be
+logged on Baby Buddy:
 
-![默认计时器列表](images/timer_default_timers-smaller.png)
+- Tummy time
+- Sleep
+- Feeding
 
-使用默认计时器适配所有安卓客户端用户，也可自行自定义计时项目，所有已配置计时器都会正常展示。
+That will look like this:
 
-若接入过往使用过的服务端，页面可能存在大量闲置快捷计时项：
+![The default timer list](images/timer_default_timers-smaller.png)
 
-![杂乱快捷计时项](images/timer_quicktimer_mess-smaller.png)
+The advantage of using the default timers is that they - by default - should work for anyone using the Android app. However, it is not necessary to use default timers. All timers configured for a particular child will be shown in the timer list.
 
-可点击应用右上角菜单，选择**重新生成默认计时器**，一键清空旧计时项并替换为标准默认项目。
+In particular when linking a Baby Buddy instance that was used before, a set of stopped (Quick-)timers might already be present:
 
-![重新生成默认计时器菜单](images/recreate_default_timers_option-smaller.png)
+![Clutter from quick timers](images/timer_quicktimer_mess-smaller.png)
 
-# 计时器使用方法
-需将计时器绑定对应的记录类型，使用系统默认计时器无需手动绑定，已自动匹配分类。
+In this case you can use the "recreate default timers" option from the menu in the top-right of the application to relplace all already created timers are replace them with the default set.
 
-自行添加的计时器，可在名称下方下拉菜单选择对应记录类型：
+![Recreate default timers menu option](images/recreate_default_timers_option-smaller.png)
 
-![选择计时器类型](images/timer_select_default_timer-smaller.png)
+# Using timers
 
-绑定后关闭计时器，即可自动生成对应类型记录，此为客户端专属适配逻辑，与网页端原生计时逻辑不同。
+First, you should associate existing timers with the corresponding type of activity that should be tracked for that given timer. When using the app's default timers, this is not necessary, because one timer for each activity will be created by default.
 
-# 各类事项记录方式
-## 俯趴、睡眠记录
-操作简单：开启计时 → 结束计时，自动完成记录。
+However, for timers that were note created by the app you can select the timer type in the drop-down below the Timer-name:
 
-## 喂养记录
-结束喂养计时后，会跳转专属填写页面，可完善详细喂养信息：
+![Selecting timer types](images/timer_select_default_timer-smaller.png)
 
-![喂养记录填写页面](images/timer_feeding_screen-smaller.png)
+The timer will be associated with that particular type of activity. Note that this is different from how Baby Buddy manages the timers! When stopping a timer the the associated activity will be logged automatically.
 
-页面上方横向滑块可调整喂养食量数值，用于记录进食量、奶量等数据，拉至最左侧可选择不填写食量。
+# Logging different activities
 
-滑块下方可填写喂养备注，再选择对应的喂养方式，按页面提示补全所需信息。
+Logging "Tummy time" and "Sleep" time is simple: Start the timer, stop the timer and the activity is logged.
 
-全部填写完成后点击保存，即可将喂养记录同步至服务端。
+Logging a feed is more complex: When the timer is stopped, a new screen opens allowing you to log more details about the feeding session that should be logged.
 
-![喂养记录保存按钮](images/timer_feeding_screen_final-smaller.png)
+![Feeding log screen](images/timer_feeding_screen-smaller.png)
+
+The top shows a horizontal slider that can be used to adjust the "amount"-value. The amount value is a generic number that will be associated with the feeding and could, for example, be the weight of the meal that the child consumed. Scrolling to the very left allows a "None"-option in case no "amount" should be registered.
+
+Below the amount-slider an optional field for notes is shown.
+
+Below the notes field there are buttons that allow you to store the type of feeding that needs to be registered. The screen will guide you through the different required fields. When everything has been set, you press the "Save" button to save the feeding entry to the Baby Buddy.
+
+![Feeding screen save button](images/timer_feeding_screen_final-smaller.png)

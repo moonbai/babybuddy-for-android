@@ -1,14 +1,13 @@
-# 为计时事项添加备注
-计时功能与换尿布记录旁均配有备注按钮，可给对应的记录添加文字说明。
+# Recording notes for timer items
 
-![备注按钮](images/notes_button.png)
+Timers and diaper change buttons have a notes button next to them to edit notes
+that should accompany a logged time.
 
-点击按钮即可展开文本编辑框，填写本次换尿布或计时事项的相关备注内容。
+![Notes button](images/notes_button.png)
 
-![备注编辑界面](images/notes_editor.png)
+Pressing the button will unfolf a text-editor that allows one to take notes
+for the corresponding diaper change or timer:
 
-填写的备注内容会**临时保存在安卓设备本地**，直至完成记录提交，避免内容丢失。
-结束计时完成记录后，填写的备注会自动清空。
+![Notes editor](images/notes_editor.png)
 
-若填写后不想将备注随记录一同保存，再次点击备注按钮收起即可。
-内容仍会暂存本地，但结束计时提交记录时，不会同步这条备注信息。
+Notes will be _persisted locally on the Android device_ until the timer is logged. Keep that in mind to not loose data. After a timer is stopped, the notes are cleared. If you change your mind, and do not want to store taken notes with your timer, press the notes-button again. Notes will be persisted locally but when stopping the timer they will not stored with the logged event.

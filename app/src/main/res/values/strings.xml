@@ -26,8 +26,8 @@
         <item>绿色</item>
         <item>黄色</item>
     </array>
-
     <string name="app_name">Baby Buddy</string>
+
 
     <string name="about_text">此安卓应用是由 &lt;a href=\'http://www.craftware.info\'&gt;Paul Konstantin Gerke&lt;/a&gt; 创建的开源软件，采用 MIT 许可证（见下文）。\n\n应用源代码可在 &lt;a href=\'https://github.com/babybuddy/babybuddy-for-android/\'&gt;https://github.com/babybuddy/babybuddy-for-android/&lt;/a&gt; 获取。\n\n应用使用第三方媒体资源，许可证信息见下文。</string>
     <string name="about_external_media_resources_title">第三方媒体资源</string>

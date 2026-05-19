@@ -1,34 +1,39 @@
-# 登录与初始设置
-首次打开应用会直接进入登录界面：
+# Login and setup
 
-![Baby Buddy 登录界面](images/login_screen-smaller.png)
+When you first launch the application you will be presented with the login screen:
 
-在服务器地址栏填写你部署好的 Baby Buddy 服务端地址，再输入登录账号与密码，点击**登录**即可。
+![Baby Buddy login screen](images/login_screen-smaller.png)
 
-**小贴士**：可使用官方演示服务器体验应用，请勿在此服务器内填写任何隐私信息！
-演示服务器账号信息：
-- 服务地址：http://demo.baby-buddy.net/
-- 登录账号：admin
-- 登录密码：admin
-- 注意：该演示服务器未启用 HTTPS，登录时需接受下文提到的明文连接风险提示。
+Enter the URL to the Baby Buddy server you want to use the app with in the server-address bar. Then add your login name and password and press "login".
 
-## 非安全 HTTP 连接
-应用支持连接未加密的 HTTP 服务端，但会弹出安全风险警告。
-**强烈建议外网环境仅使用 HTTPS 加密服务端登录**。
-外网使用 HTTP 登录时账号密码不会加密传输，极易泄露被盗取。
-HTTP 连接仅适用于**家庭内网本地部署**、不对外网开放的服务场景。
+_Tip:_ You can try out the app with Baby Buddy's official demo server. Do not put any private information into the app while logged in to the server! The credentials for the server are:
 
-# 宝宝列表
-登录成功后，应用会展示服务端数据库内宝宝的相关信息：
+- Server: http://demo.baby-buddy.net/
+- Login Name: admin
+- Login Password: admin
+- Note: The server is _not_ using HTTPS so you need to accept the HTTP warning described below.
 
-![登录后首页界面](images/demo_screenie-smaller.png)
+## Insecure HTTP connections
 
-左右滑动即可切换查看多个宝宝档案。
+You _can_ use an insecure HTTP server to connect to, but if you do, a warning will show advising you against it. It is strongly advised to only use HTTPS-secured servers when logging in over the internet! Your password will not be encrypted when logging in to a server over the internet using HTTP and can therefore easily be stolen. The HTTP-option really only is meant for _local home-network_ installations of Baby Buddy in a home network which are not exposed to the internet.
 
-若你还未在网页端后台添加宝宝信息，应用顶部标题栏会显示**未找到宝宝信息**。
-请先登录网页版后台添加宝宝资料，添加完成后重新在安卓客户端登录即可正常使用。
+# Children list
 
-# 后续使用指引
-本客户端主打便捷记录宝宝作息时长与换尿布记录，详细操作可查看对应文档：
-- [记录换尿布记录](./diaper.md)
-- [作息时长记录](./logging.md)
+After you logged in to the server you should find the app showing information for a single child in the Baby Buddy database:
+
+![App after logging in](images/demo_screenie-smaller.png)
+
+You can swipe left and right to switch between multiple children.
+
+If you did not create a child on the Baby Buddy webapp, yet, you will see
+"(No children found)" in the title-bar of the app instead. Login to the
+web app directly and add children as needed. After you created the children
+in Baby Buddy, login back to the Android app and continue.
+
+# Next steps
+
+The app is optimized to make it easier to track times with Baby Buddy and
+diaper changes. For details on these topics check the documents
+
+- [Logging Diaper Changes](./diaper.md)
+- [Logging times](./logging.md)
