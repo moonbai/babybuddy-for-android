@@ -42,7 +42,7 @@ jobs:
           mkdir -p app/src/main/res/drawable-xxhdpi
           mkdir -p app/src/main/res/drawable-xxxhdpi
           
-          for icon in pkg_bottle pkg_diaper pkg_sleep pkg_notes pkg_pumping pkg_crawl pkg_wet pkg_poop pkg_not_wet pkg_no_poop pkg_no_notes pkg_breast pkg_breast_left pkg_breast_right pkg_solid_food pkg_app_icon_foreground; do
+          for icon in pkg_bottle pkg_diaper pkg_sleep pkg_notes pkg_pumping pkg_crawl pkg_wet pkg_poop pkg_not_wet pkg_no_poop pkg_no_notes pkg_breast pkg_breast_left pkg_breast_right pkg_solid_food; do
             convert -size 24x24 xc:gray50 "app/src/main/res/drawable-mdpi/${icon}.png"
             convert -size 36x36 xc:gray50 "app/src/main/res/drawable-hdpi/${icon}.png"
             convert -size 48x48 xc:gray50 "app/src/main/res/drawable-xhdpi/${icon}.png"
