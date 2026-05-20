@@ -1,6 +1,7 @@
 package eu.pkgsoftware.babybuddywidgets
 
 import android.app.ProgressDialog
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.InputEvent
@@ -125,6 +126,7 @@ class MainActivity : AppCompatActivity() {
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        applyLanguage()
         super.onCreate(savedInstanceState)
 
         binding = ActivityMainBinding.inflate(
@@ -393,6 +395,32 @@ class MainActivity : AppCompatActivity() {
                     delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_YES
                 }
             }
+        }
+    }
+
+    fun applyLanguage() {
+        PreferenceManager.getDefaultSharedPreferences(this).let { p ->
+            val language = p.getString("setting_language", "system")
+            val locale = when (language) {
+                "zh" -> Locale("zh", "CN")
+                "en" -> Locale.ENGLISH
+                else -> {
+                    val defaultLocale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        resources.configuration.locales[0]
+                    } else {
+                        resources.configuration.locale
+                    }
+                    if (defaultLocale.language == "zh") {
+                        Locale("zh", "CN")
+                    } else {
+                        Locale.ENGLISH
+                    }
+                }
+            }
+            Locale.setDefault(locale)
+            val config = resources.configuration
+            config.setLocale(locale)
+            resources.updateConfiguration(config, resources.displayMetrics)
         }
     }
 }

@@ -12,6 +12,10 @@ class SettingsFragment : PreferenceFragmentCompat() {
             if (key == "setting_dark_light_mode") {
                 mainActivity.applyLightDarkMode()
             }
+            if (key == "setting_language") {
+                mainActivity.applyLanguage()
+                mainActivity.recreate()
+            }
         }
 
     val mainActivity: MainActivity

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 登录 -->
+    <string name="help_item_1_1_title">登录</string>
+    <string name="help_item_1_1_image">help_login_page</string>
+    <string name="help_item_1_1_text">连接宝宝管家服务器有两种方式：输入您的宝宝管家服务器地址、用户名和密码，然后点击登录按钮将应用连接到服务器。或者选择二维码登录方式（向下滚动查看详情）。</string>
+    <!-- 二维码登录 -->
+    <string name="help_item_1_2_title">二维码登录</string>
+    <string name="help_item_1_2_image">help_login_qrcode</string>
+    <string name="help_item_1_2_text">您也可以使用登录二维码登录宝宝管家服务器。请使用其他设备登录宝宝管家服务器，然后通过用户菜单（右上角）进入\"添加设备\"页面，找到登录二维码。用手机上的应用扫描二维码。扫描成功后，点击\"立即登录\"按钮即可登录。</string>
+    <!-- 不安全登录 -->
+    <string name="help_item_1_3_title">不安全登录</string>
+    <string name="help_item_1_3_image">help_insecure_http_warning</string>
+    <string name="help_item_1_3_text">如果您使用的是 http 地址而不是 https 地址，应用会显示此警告。请仅在您自己控制的网络内对本地宝宝管家服务器使用此功能！</string>
+    <!-- Home Assistant Ingress -->
+    <string name="help_item_1_4_title">Home Assistant Ingress</string>
+    <string name="help_item_1_4_image">help_login_homeassistant</string>
+    <string name="help_item_1_4_text">宝宝管家 Android 版部分支持登录托管在 Homeassistant Ingress 服务器上的宝宝管家服务器。您需要使用二维码登录方式登录此类服务器。</string>
+    <!-- 概览 -->
+    <string name="help_item_2_1_title">概览</string>
+    <string name="help_item_2_1_image">help_overview_2</string>
+    <string name="help_item_2_1_text">登录后，您可以在屏幕上方找到记录活动的按钮，屏幕下方显示最近记录的活动历史。如果您为多个孩子记录活动，可以左右滑动在孩子之间切换。</string>
+    <!-- 使用计时器 -->
+    <string name="help_item_3_1_title">使用计时器</string>
+    <string name="help_item_3_1_image">help_play_button_highlight</string>
+    <string name="help_item_3_1_text">要启动计时器，请点击屏幕上方的计时器事件按钮之一。这将启动一个计时器。</string>
+    <string name="help_item_3_2_title">使用计时器</string>
+    <string name="help_item_3_2_image">help_timer_interface</string>
+    <string name="help_item_3_2_text">启动计时器后会打开与该计时器相关的界面。填写您想要记录的所有信息。当所有必填字段都填写完毕后，会出现保存按钮。</string>
+    <string name="help_item_3_3_title">使用计时器</string>
+    <string name="help_item_3_3_image">help_save_button_highlight</string>
+    <string name="help_item_3_3_text">保存按钮出现后，您可以点击保存按钮停止计时器。您也可以再次点击顶部的计时器按钮来取消计时器，而不是保存。</string>
+    <!-- 记录尿布和笔记 -->
+    <string name="help_item_4_1_title">记录尿布和笔记</string>
+    <string name="help_item_4_1_image">help_diaper_logging</string>
+    <string name="help_item_4_1_text">除了计时器事件，顶部的按钮行还允许记录非计时器事件，如尿布更换和通用笔记。控制方式与计时器记录相同，但没有计时器功能。</string>
+    <!-- 事件历史 -->
+    <string name="help_item_5_1_title">事件历史</string>
+    <string name="help_item_5_1_image">help_events</string>
+    <string name="help_item_5_1_text">屏幕底部的事件历史显示所选孩子的最近活动记录。您可以长按历史中的条目三秒钟来编辑条目。这将在宝宝管家应用中打开相应的页面。要删除条目，请点击红色的\"删除\"按钮。</string>
+</resources>

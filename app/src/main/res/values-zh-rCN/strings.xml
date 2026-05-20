@@ -211,6 +211,7 @@
 
     <!-- Settings screen -->
     <string name="setting_dark_light_mode">深色/浅色模式</string>
+    <string name="setting_language">语言</string>
     <string name="timeline_title_line_title">时间线</string>
     <array name="setting_dark_light_mode_options">
         <item>跟随系统</item>
@@ -221,5 +222,15 @@
         <item>system</item>
         <item>light</item>
         <item>dark</item>
+    </array>
+    <array name="setting_language_options">
+        <item>跟随系统语言</item>
+        <item>中文</item>
+        <item>英文</item>
+    </array>
+    <array name="setting_language_values" translatable="false">
+        <item>system</item>
+        <item>zh</item>
+        <item>en</item>
     </array>
 </resources>
