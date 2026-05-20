@@ -1,0 +1,386 @@
+package eu.pkgsoftware.babybuddywidgets;
+
+import android.view.View;
+import android.widget.Button;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+
+import com.squareup.phrase.Phrase;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.RecyclerView;
+import eu.pkgsoftware.babybuddywidgets.activitycomponents.TimerControl;
+import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerAlternativeBinding;
+import eu.pkgsoftware.babybuddywidgets.history.ChildEventHistoryLoader;
+import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
+import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry;
+import eu.pkgsoftware.babybuddywidgets.timers.FragmentCallbacks;
+import eu.pkgsoftware.babybuddywidgets.timers.LoggingButtonController;
+import eu.pkgsoftware.babybuddywidgets.timers.TimerControlInterface;
+import eu.pkgsoftware.babybuddywidgets.timers.TimersUpdatedCallback;
+import eu.pkgsoftware.babybuddywidgets.timers.TranslatedException;
+import eu.pkgsoftware.babybuddywidgets.utils.Promise;
+
+public class AlternativeBabyLayoutHolder extends RecyclerView.ViewHolder implements TimerControlInterface {
+    private final BabyManagerAlternativeBinding binding;
+    private final BaseFragment baseFragment;
+    private final BabyBuddyClient client;
+
+    private BabyBuddyClient.Child child = null;
+    private ChildEventHistoryLoader childHistoryLoader = null;
+    private ChildrenStateTracker.ChildObserver childObserver = null;
+    private BabyBuddyClient.Timer[] cachedTimers = null;
+    private List<TimersUpdatedCallback> updateTimersCallbacks = new ArrayList<>(10);
+    private int pendingTimerModificationCalls = 0;
+    private LoggingButtonController loggingButtonController = null;
+
+    private String activeTimerType = null;
+    private boolean timerRunning = false;
+
+    public AlternativeBabyLayoutHolder(BaseFragment fragment, BabyManagerAlternativeBinding bmb) {
+        super(bmb.getRoot());
+        binding = bmb;
+
+        baseFragment = fragment;
+        client = fragment.getMainActivity().getClient();
+
+        binding.mainScrollView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
+            if (childHistoryLoader != null) {
+                childHistoryLoader.updateTop();
+            }
+        });
+
+        setupRadioButtons();
+        setupButtons();
+    }
+
+    private void setupRadioButtons() {
+        binding.timerRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.radioFeeding) {
+                activeTimerType = "feeding";
+            } else if (checkedId == R.id.radioSleep) {
+                activeTimerType = "sleep";
+            } else if (checkedId == R.id.radioTummyTime) {
+                activeTimerType = "tummy time";
+            } else if (checkedId == R.id.radioPumping) {
+                activeTimerType = "pumping";
+            }
+            updateTimerButton();
+        });
+
+        // Default to feeding
+        binding.radioFeeding.setChecked(true);
+        activeTimerType = "feeding";
+    }
+
+    private void setupButtons() {
+        binding.btnStartStopTimer.setOnClickListener(v -> {
+            if (timerRunning) {
+                stopActiveTimer();
+            } else {
+                startActiveTimer();
+            }
+        });
+
+        binding.btnQuickLog.setOnClickListener(v -> {
+            int checkedId = binding.quickLogRadioGroup.getCheckedRadioButtonId();
+            if (checkedId == R.id.radioDiaper) {
+                openDiaperLogger();
+            } else if (checkedId == R.id.radioNotes) {
+                openNotesLogger();
+            }
+        });
+    }
+
+    private void updateTimerButton() {
+        if (timerRunning) {
+            binding.btnStartStopTimer.setText(R.string.alternative_stop_timer);
+        } else {
+            binding.btnStartStopTimer.setText(R.string.alternative_start_timer);
+        }
+    }
+
+    private void startActiveTimer() {
+        if (activeTimerType == null || child == null) return;
+
+        BabyBuddyClient.Timer timer = new BabyBuddyClient.Timer();
+        timer.child_id = child.id;
+        timer.type = activeTimerType;
+
+        startTimer(timer, new Promise<BabyBuddyClient.Timer, TranslatedException>() {
+            @Override
+            public void succeeded(BabyBuddyClient.Timer result) {
+                timerRunning = true;
+                updateTimerButton();
+            }
+
+            @Override
+            public void failed(TranslatedException error) {
+                baseFragment.getMainActivity().binding.globalErrorBubble.flashMessage(
+                    error.getLocalizedMessage(baseFragment.getContext())
+                );
+            }
+        });
+    }
+
+    private void stopActiveTimer() {
+        if (cachedTimers != null && cachedTimers.length > 0) {
+            BabyBuddyClient.Timer activeTimer = cachedTimers[0];
+            stopTimer(activeTimer, new Promise<Object, TranslatedException>() {
+                @Override
+                public void succeeded(Object result) {
+                    timerRunning = false;
+                    updateTimerButton();
+                }
+
+                @Override
+                public void failed(TranslatedException error) {
+                    baseFragment.getMainActivity().binding.globalErrorBubble.flashMessage(
+                        error.getLocalizedMessage(baseFragment.getContext())
+                    );
+                }
+            });
+        }
+    }
+
+    private void openDiaperLogger() {
+        if (loggingButtonController != null) {
+            loggingButtonController.openDiaper();
+        }
+    }
+
+    private void openNotesLogger() {
+        if (loggingButtonController != null) {
+            loggingButtonController.openNotes();
+        }
+    }
+
+    public BabyBuddyClient.Child getChild() {
+        return child;
+    }
+
+    private void requeueImmediateTimerListRefresh() {
+        client.listTimers(child.id, new BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer[]>() {
+            @Override
+            public void error(@NonNull Exception error) {
+            }
+
+            @Override
+            public void response(BabyBuddyClient.Timer[] response) {
+                updateTimerList(response);
+            }
+        });
+    }
+
+    private void resetChildHistoryLoader() {
+        if (childHistoryLoader != null) {
+            childHistoryLoader.close();
+        }
+        childHistoryLoader = null;
+    }
+
+    public void updateChild(BabyBuddyClient.Child c, ChildrenStateTracker stateTracker) {
+        if (childObserver != null && child == c && stateTracker == childObserver.getTracker()) {
+            return;
+        }
+
+        clear();
+        this.child = c;
+
+        if (child != null) {
+            if (stateTracker == null) {
+                throw new RuntimeException("StateTracker was null somehow");
+            }
+            childObserver = stateTracker.new ChildObserver(child.id, this::updateTimerList);
+
+            childHistoryLoader = new ChildEventHistoryLoader(
+                baseFragment,
+                binding.innerTimeline,
+                child.id,
+                new VisibilityCheck(binding.mainScrollView),
+                binding.timelineProgressSpinner,
+                (entryType, exception) -> {
+                    String tActivity = baseFragment.translateActivityName(entryType);
+
+                    String msg = Phrase.from(baseFragment.getResources(), R.string.history_loading_timeline_entry_failed)
+                        .put("activity", tActivity)
+                        .format().toString();
+
+                    baseFragment.getMainActivity().binding.globalErrorBubble.flashMessage(msg);
+                }
+            );
+
+            loggingButtonController = new LoggingButtonController(
+                baseFragment,
+                null,
+                new FragmentCallbacks() {
+                    @Override
+                    public void insertControls(@NonNull View view) {
+                        // Handle differently in our UI
+                    }
+
+                    @Override
+                    public void removeControls(@NonNull View view) {
+                        // Handle differently in our UI
+                    }
+
+                    @Override
+                    public void updateTimeline(@Nullable TimeEntry newEntry) {
+                        if (childHistoryLoader != null) {
+                            if (newEntry != null) {
+                                childHistoryLoader.addEntryToTop(newEntry);
+                            }
+                            childHistoryLoader.forceRefresh();
+                        }
+                    }
+                },
+                child,
+                this
+            );
+        }
+    }
+
+    public void updateTimerList(BabyBuddyClient.Timer[] timers) {
+        if (pendingTimerModificationCalls > 0) {
+            return;
+        }
+
+        if (child == null) {
+            cachedTimers = new BabyBuddyClient.Timer[0];
+            timerRunning = false;
+            updateTimerButton();
+            callTimerUpdateCallback();
+            return;
+        }
+
+        for (BabyBuddyClient.Timer t : timers) {
+            if (t.child_id != child.id) {
+                return;
+            }
+        }
+
+        cachedTimers = timers;
+        timerRunning = timers.length > 0;
+        updateTimerButton();
+        callTimerUpdateCallback();
+    }
+
+    public void onViewDeselected() {
+        resetChildObserver();
+        resetChildHistoryLoader();
+    }
+
+    private void resetChildObserver() {
+        if (childObserver != null) {
+            childObserver.close();
+            childObserver = null;
+        }
+    }
+
+    public void clear() {
+        if (loggingButtonController != null) {
+            loggingButtonController.destroy();
+            loggingButtonController = null;
+        }
+        resetChildObserver();
+        resetChildHistoryLoader();
+        child = null;
+        cachedTimers = null;
+    }
+
+    public void close() {
+        clear();
+    }
+
+    private class UpdateBufferingPromise<A, B> implements Promise<A, B> {
+        private Promise<A, B> promise;
+
+        public UpdateBufferingPromise(Promise<A, B> promise) {
+            this.promise = promise;
+            pendingTimerModificationCalls++;
+        }
+
+        @Override
+        public void succeeded(A a) {
+            pendingTimerModificationCalls--;
+            promise.succeeded(a);
+        }
+
+        @Override
+        public void failed(B b) {
+            pendingTimerModificationCalls--;
+            promise.failed(b);
+        }
+    }
+
+    @Override
+    public void createNewTimer(@NonNull BabyBuddyClient.Timer timer, @NonNull Promise<BabyBuddyClient.Timer, TranslatedException> cb) {
+        baseFragment.getMainActivity().getChildTimerControl(child).createNewTimer(
+            timer, new UpdateBufferingPromise<>(cb)
+        );
+    }
+
+    @Override
+    public void startTimer(@NotNull BabyBuddyClient.Timer timer, @NonNull Promise<BabyBuddyClient.Timer, TranslatedException> cb) {
+        baseFragment.getMainActivity().getChildTimerControl(child).startTimer(
+            timer, new UpdateBufferingPromise<>(cb)
+        );
+    }
+
+    @Override
+    public void stopTimer(@NotNull BabyBuddyClient.Timer timer, @NonNull Promise<Object, TranslatedException> cb) {
+        baseFragment.getMainActivity().getChildTimerControl(child).stopTimer(
+            timer, new UpdateBufferingPromise<>(cb)
+        );
+    }
+
+    @Override
+    public void registerTimersUpdatedCallback(@NonNull TimersUpdatedCallback callback) {
+        if (updateTimersCallbacks.contains(callback)) {
+            return;
+        }
+        updateTimersCallbacks.add(callback);
+
+        baseFragment.getMainActivity().getChildTimerControl(child).registerTimersUpdatedCallback(
+            timers -> {
+                for (TimersUpdatedCallback c : updateTimersCallbacks) {
+                    c.newTimerListLoaded(timers);
+                }
+            }
+        );
+        callTimerUpdateCallback();
+    }
+
+    @Override
+    public void unregisterTimersUpdatedCallback(@NonNull TimersUpdatedCallback callback) {
+        if (!updateTimersCallbacks.contains(callback)) {
+            return;
+        }
+        updateTimersCallbacks.remove(callback);
+    }
+
+    private void callTimerUpdateCallback() {
+        TimerControl wrapped = (TimerControl) baseFragment.getMainActivity().getChildTimerControl(child).getWrap();
+        if (cachedTimers != null) {
+            wrapped.callTimerUpdateCallback(cachedTimers);
+        }
+    }
+
+    @NonNull
+    @Override
+    public CredStore.Notes getNotes(@NonNull BabyBuddyClient.Timer timer) {
+        return baseFragment.getMainActivity().getChildTimerControl(child).getNotes(timer);
+    }
+
+    @Override
+    public void setNotes(@NonNull BabyBuddyClient.Timer timer, CredStore.Notes notes) {
+        baseFragment.getMainActivity().getChildTimerControl(child).setNotes(timer, notes);
+    }
+}

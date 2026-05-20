@@ -15,4 +15,11 @@
         android:title="@string/setting_language"
         app:useSimpleSummaryProvider="true" />
 
+    <ListPreference
+        android:entries="@array/setting_interface_style_options"
+        android:entryValues="@array/setting_interface_style_values"
+        android:key="setting_interface_style"
+        android:title="@string/setting_interface_style"
+        app:useSimpleSummaryProvider="true" />
+
 </PreferenceScreen>

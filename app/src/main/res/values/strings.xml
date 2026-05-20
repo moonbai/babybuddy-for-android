@@ -218,6 +218,7 @@
     <!-- Settings screen -->
     <string name="setting_dark_light_mode">Dark/Light mode</string>
     <string name="setting_language">Language</string>
+    <string name="setting_interface_style">Interface Style</string>
     <string name="timeline_title_line_title">Timeline</string>
     <array name="setting_dark_light_mode_options">
         <item>Follow system</item>
@@ -239,4 +240,27 @@
         <item>zh</item>
         <item>en</item>
     </array>
+
+    <!-- Interface style -->
+    <array name="setting_interface_style_options">
+        <item>Official Interface</item>
+        <item>Alternative Interface</item>
+    </array>
+    <array name="setting_interface_style_values" translatable="false">
+        <item>official</item>
+        <item>alternative</item>
+    </array>
+
+    <!-- Alternative interface strings -->
+    <string name="alternative_timer_section">Timer</string>
+    <string name="alternative_start_timer">Start Timer</string>
+    <string name="alternative_stop_timer">Stop Timer</string>
+    <string name="alternative_quick_log_section">Quick Log</string>
+    <string name="alternative_log">Log</string>
+    <string name="alternative_feeding">Feeding</string>
+    <string name="alternative_sleep">Sleep</string>
+    <string name="alternative_tummy_time">Tummy time</string>
+    <string name="alternative_pumping">Pumping</string>
+    <string name="alternative_diaper">Diaper</string>
+    <string name="alternative_notes">Notes</string>
 </resources>

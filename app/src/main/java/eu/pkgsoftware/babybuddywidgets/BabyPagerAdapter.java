@@ -9,15 +9,19 @@ import java.util.List;
 import java.util.Objects;
 
 import androidx.annotation.NonNull;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding;
+import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerAlternativeBinding;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
 
 // I need to extract this one!!!
-class BabyPagerAdapter extends RecyclerView.Adapter<BabyLayoutHolder> {
-    private List<BabyLayoutHolder> holders = new ArrayList<>();
-    private BabyLayoutHolder activeHolder = null;
+class BabyPagerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    private List<RecyclerView.ViewHolder> holders = new ArrayList<>();
+    private RecyclerView.ViewHolder activeHolder = null;
+    private static final int VIEW_TYPE_OFFICIAL = 0;
+    private static final int VIEW_TYPE_ALTERNATIVE = 1;
 
     private BaseFragment fragment = null;
     private BabyBuddyClient.Child[] children = null;
@@ -39,24 +43,50 @@ class BabyPagerAdapter extends RecyclerView.Adapter<BabyLayoutHolder> {
     }
 
     @Override
-    public @NonNull
-    BabyLayoutHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        BabyManagerBinding babyBinding = BabyManagerBinding.inflate(
-            fragment.getLayoutInflater(), null, false
-        );
-        View v = babyBinding.getRoot();
-        v.setLayoutParams(new RelativeLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
-        ));
-
-        BabyLayoutHolder holder = new BabyLayoutHolder(fragment, babyBinding);
-        holders.add(holder);
-        return holder;
+    public int getItemViewType(int position) {
+        String style = PreferenceManager.getDefaultSharedPreferences(
+            fragment.getContext()
+        ).getString("setting_interface_style", "official");
+        return "alternative".equals(style) ? VIEW_TYPE_ALTERNATIVE : VIEW_TYPE_OFFICIAL;
     }
 
     @Override
-    public void onBindViewHolder(@NonNull BabyLayoutHolder holder, int position) {
-        holder.updateChild(children[position], stateTracker);
+    public @NonNull
+    RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        if (viewType == VIEW_TYPE_ALTERNATIVE) {
+            BabyManagerAlternativeBinding babyBinding = BabyManagerAlternativeBinding.inflate(
+                fragment.getLayoutInflater(), null, false
+            );
+            View v = babyBinding.getRoot();
+            v.setLayoutParams(new RelativeLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
+            ));
+
+            AlternativeBabyLayoutHolder holder = new AlternativeBabyLayoutHolder(fragment, babyBinding);
+            holders.add(holder);
+            return holder;
+        } else {
+            BabyManagerBinding babyBinding = BabyManagerBinding.inflate(
+                fragment.getLayoutInflater(), null, false
+            );
+            View v = babyBinding.getRoot();
+            v.setLayoutParams(new RelativeLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
+            ));
+
+            BabyLayoutHolder holder = new BabyLayoutHolder(fragment, babyBinding);
+            holders.add(holder);
+            return holder;
+        }
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        if (holder instanceof BabyLayoutHolder) {
+            ((BabyLayoutHolder) holder).updateChild(children[position], stateTracker);
+        } else if (holder instanceof AlternativeBabyLayoutHolder) {
+            ((AlternativeBabyLayoutHolder) holder).updateChild(children[position], stateTracker);
+        }
 
         int childIndex = LoggedInFragment.childIndexBySlug(
             children,
@@ -70,8 +100,12 @@ class BabyPagerAdapter extends RecyclerView.Adapter<BabyLayoutHolder> {
     }
 
     @Override
-    public void onViewRecycled(@NonNull BabyLayoutHolder holder) {
-        holder.clear();
+    public void onViewRecycled(@NonNull RecyclerView.ViewHolder holder) {
+        if (holder instanceof BabyLayoutHolder) {
+            ((BabyLayoutHolder) holder).clear();
+        } else if (holder instanceof AlternativeBabyLayoutHolder) {
+            ((AlternativeBabyLayoutHolder) holder).clear();
+        }
     }
 
     @Override
@@ -84,23 +118,38 @@ class BabyPagerAdapter extends RecyclerView.Adapter<BabyLayoutHolder> {
 
     public void activeViewChanged(BabyBuddyClient.Child c) {
         activeHolder = null;
-        for (BabyLayoutHolder h : holders) {
-            if (Objects.equals(c, h.getChild())) {
-                h.updateChild(c, stateTracker);
-                activeHolder = h;
-            } else {
-                h.onViewDeselected();
+        for (RecyclerView.ViewHolder h : holders) {
+            if (h instanceof BabyLayoutHolder) {
+                BabyLayoutHolder holder = (BabyLayoutHolder) h;
+                if (Objects.equals(c, holder.getChild())) {
+                    holder.updateChild(c, stateTracker);
+                    activeHolder = h;
+                } else {
+                    holder.onViewDeselected();
+                }
+            } else if (h instanceof AlternativeBabyLayoutHolder) {
+                AlternativeBabyLayoutHolder holder = (AlternativeBabyLayoutHolder) h;
+                if (Objects.equals(c, holder.getChild())) {
+                    holder.updateChild(c, stateTracker);
+                    activeHolder = h;
+                } else {
+                    holder.onViewDeselected();
+                }
             }
         }
     }
 
-    public BabyLayoutHolder getActive() {
+    public RecyclerView.ViewHolder getActive() {
         return activeHolder;
     }
 
     public void close() {
-        for (BabyLayoutHolder h : holders) {
-            h.close();
+        for (RecyclerView.ViewHolder h : holders) {
+            if (h instanceof BabyLayoutHolder) {
+                ((BabyLayoutHolder) h).close();
+            } else if (h instanceof AlternativeBabyLayoutHolder) {
+                ((AlternativeBabyLayoutHolder) h).close();
+            }
         }
     }
 }

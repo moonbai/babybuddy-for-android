@@ -14,6 +14,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
             }
             if (key == "setting_language") {
                 mainActivity.applyLanguage()
+            }
+            if (key == "setting_interface_style") {
                 mainActivity.recreate()
             }
         }
@@ -26,6 +28,9 @@ class SettingsFragment : PreferenceFragmentCompat() {
         preferenceManager.sharedPreferences?.let { p ->
             if (p.getString("setting_dark_light_mode", "") == "") {
                 p.edit().putString("setting_dark_light_mode", "system").commit()
+            }
+            if (p.getString("setting_interface_style", "") == "") {
+                p.edit().putString("setting_interface_style", "official").commit()
             }
         }
 
