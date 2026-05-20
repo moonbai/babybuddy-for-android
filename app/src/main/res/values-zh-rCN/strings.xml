@@ -29,7 +29,7 @@
 
     <string name="app_name">宝宝管家</string>
 
-    <string name="about_text">此安卓应用是由 &lt;a href=\'http://www.craftware.info\'&gt;Paul Konstantin Gerke&lt;/a&gt; 创建的开源软件，采用 MIT 许可证（见下文）。\n\n应用源代码可在 &lt;a href=\'https://github.com/babybuddy/babybuddy-for-android/\'&gt;https://github.com/babybuddy/babybuddy-for-android/&lt;/a&gt; 获取。\n\n应用使用第三方媒体资源，许可证信息见下文。</string>
+    <string name="about_text">此安卓应用是由 &lt;a href=\'http://www.craftware.info\'&gt;Paul Konstantin Gerke&lt;/a&gt; 创建的开源软件，采用 MIT 许可证（见下文）。\n\n应用源代码可在 &lt;a href=\'https://github.com/babybuddy/babybuddy-for-android/\'&gt;https://github.com/babybuddy/babybuddy-for-android/&lt;/a&gt; 获取。\n\n中文翻译版本地址：&lt;a href=\'https://github.com/moonbai/babybuddy-for-android\'&gt;https://github.com/moonbai/babybuddy-for-android&lt;/a&gt;。\n\n应用使用第三方媒体资源，许可证信息见下文。</string>
     <string name="about_external_media_resources_title">第三方媒体资源</string>
     <string name="about_external_libraries_title">第三方库</string>
 
@@ -211,7 +211,6 @@
 
     <!-- Settings screen -->
     <string name="setting_dark_light_mode">深色/浅色模式</string>
-    <string name="setting_language">语言</string>
     <string name="timeline_title_line_title">时间线</string>
     <array name="setting_dark_light_mode_options">
         <item>跟随系统</item>
@@ -222,15 +221,5 @@
         <item>system</item>
         <item>light</item>
         <item>dark</item>
-    </array>
-    <array name="setting_language_options">
-        <item>跟随系统语言</item>
-        <item>中文</item>
-        <item>英文</item>
-    </array>
-    <array name="setting_language_values" translatable="false">
-        <item>system</item>
-        <item>zh</item>
-        <item>en</item>
     </array>
 </resources>

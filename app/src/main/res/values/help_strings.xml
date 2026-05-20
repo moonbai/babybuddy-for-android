@@ -1,65 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Logging in -->
+    <!-- Login -->
     <string name="help_item_1_1_title">Login</string>
     <string name="help_item_1_1_image">help_login_page</string>
-    <string name="help_item_1_1_text">There are two options for connecting to your Babybuddy server:
-Enter your Babybuddy server URL, username, and password. Then press
-login to connect the Babybuddy app to the Babybuddy server. Or you choose the
-QR Code option (scroll down for details on that option).</string>
-    <!-- QR Code login -->
-    <string name="help_item_1_2_title">QR Code login</string>
+    <string name="help_item_1_1_text">Connect to Baby Buddy server in two ways: enter your Baby Buddy server address, username, and password, then tap the login button to connect the app to the server. Or choose the QR code login method (scroll down for details).</string>
+    <!-- QR Code Login -->
+    <string name="help_item_1_2_title">QR Code Login</string>
     <string name="help_item_1_2_image">help_login_qrcode</string>
-    <string name="help_item_1_2_text">Alternatively, you can login to your Babybuddy Server using a login QR-code. Login to
-your Babybuddy Server from another device. Then navigate
-via the user menu (top-right) to the \"Add a device\" page. This is where you find
-the login QR-code. Scan the QR-code with the app on your phone. If
-scanned successfully, you should get the option to login to Babybuddy
-by pressing the \"Login now\" button.</string>
-    <!-- Insecure Login -->
-    <string name="help_item_1_3_title">Insecure Login</string>
+    <string name="help_item_1_2_text">You can also log in to your Baby Buddy server using a login QR code. Please use another device to log in to your Baby Buddy server, then access the \"Add Device\" page through the user menu (top right) to find the login QR code. Scan it with this app on your phone. Once scanned, tap \"Login Now\" to sign in.</string>
+    <!-- Unsecure Login -->
+    <string name="help_item_1_3_title">Unsecure Login</string>
     <string name="help_item_1_3_image">help_insecure_http_warning</string>
-    <string name="help_item_1_3_text">If you use an http-address instead of an https-address, the application will
-show you this warning. Only use this feature for local BabyBuddy servers in a
-network that you control!</string>
+    <string name="help_item_1_3_text">If you are using an http address instead of https, the app will show this warning. Please only use this feature for local Baby Buddy servers within networks you control!</string>
     <!-- Home Assistant Ingress -->
     <string name="help_item_1_4_title">Home Assistant Ingress</string>
     <string name="help_item_1_4_image">help_login_homeassistant</string>
-    <string name="help_item_1_4_text">Babybuddy for Android has partial support for logging in
-to a Babybuddy server that is hosted on a Homeassistant Ingress-server. You
-will need to use the QR-code login option to login to such a server.</string>
+    <string name="help_item_1_4_text">Baby Buddy for Android partially supports logging in to Baby Buddy servers hosted on Home Assistant Ingress servers. You will need to use the QR code login method to log in to such servers.</string>
     <!-- Overview -->
     <string name="help_item_2_1_title">Overview</string>
     <string name="help_item_2_1_image">help_overview_2</string>
-    <string name="help_item_2_1_text">After logging in, you find buttons for logging activities in the upper part of the screen
-and a history of recently logged activities in the lower part of the screen.
-If you log activities for multiple children, you can swipe horizontally to switch between children.</string>
+    <string name="help_item_2_1_text">After logging in, you will find buttons for logging activities at the top of the screen, and recent activity history displayed below. If you log activities for multiple children, you can swipe left and right to switch between them.</string>
     <!-- Using Timers -->
     <string name="help_item_3_1_title">Using Timers</string>
     <string name="help_item_3_1_image">help_play_button_highlight</string>
-    <string name="help_item_3_1_text">To start a timer, press any of the timer-event buttons in the upper part of the
-application. This will start a timer.</string>
+    <string name="help_item_3_1_text">To start a timer, tap one of the timer event buttons at the top of the screen. This will start a timer.</string>
     <string name="help_item_3_2_title">Using Timers</string>
     <string name="help_item_3_2_image">help_timer_interface</string>
-    <string name="help_item_3_2_text">Starting a time will open an interface related to the timer that was just
-started. Fill in all the information you want to log. Once all required fields
-are entered a save-button will appear.</string>
+    <string name="help_item_3_2_text">After starting a timer, the interface related to that timer will open. Fill in all the information you want to record. Once all required fields are filled, a save button will appear.</string>
     <string name="help_item_3_3_title">Using Timers</string>
     <string name="help_item_3_3_image">help_save_button_highlight</string>
-    <string name="help_item_3_3_text">Once the save-field appears, the timer can be stopped by pressing the
-save-button. You can also click the timer-button top-row again to cancel a timer
-instead of saving it.</string>
+    <string name="help_item_3_3_text">Once the save button appears, you can tap the save button to stop the timer. You can also tap the timer button at the top again to cancel the timer instead of saving.</string>
     <!-- Logging Diapers and Notes -->
     <string name="help_item_4_1_title">Logging Diapers and Notes</string>
     <string name="help_item_4_1_image">help_diaper_logging</string>
-    <string name="help_item_4_1_text">In addition to timer events the top-row allows logging of non-timer events, like
-diaper changes and generic notes. The controls function the same way as for the
-timer logging, but without a timer.</string>
-    <!-- Event history -->
-    <string name="help_item_5_1_title">Event history</string>
+    <string name="help_item_4_1_text">In addition to timer events, the top button row also allows logging non-timer events such as diaper changes and general notes. Controls are the same as timer logging, but without the timer functionality.</string>
+    <!-- Event History -->
+    <string name="help_item_5_1_title">Event History</string>
     <string name="help_item_5_1_image">help_events</string>
-    <string name="help_item_5_1_text">The history at the bottom of the screen shows the most recent activities of
-the selected child. You can edit entries by pressing the entry in the history for three
-seconds. This will open the corresponding page in the BabyBuddy app.
-To delete an entry, press the red \"delete\" button.</string>
+    <string name="help_item_5_1_text">The event history at the bottom of the screen shows recent activity for the selected child. You can long-press an entry in the history for three seconds to edit it. This will open the corresponding page in the Baby Buddy app. To delete the entry, tap the red \"Delete\" button.</string>
 </resources>
