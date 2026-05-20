@@ -21,8 +21,9 @@ import eu.pkgsoftware.babybuddywidgets.history.ChildEventHistoryLoader;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry;
+import eu.pkgsoftware.babybuddywidgets.timers.DiaperLoggingController;
 import eu.pkgsoftware.babybuddywidgets.timers.FragmentCallbacks;
-import eu.pkgsoftware.babybuddywidgets.timers.LoggingButtonController;
+import eu.pkgsoftware.babybuddywidgets.timers.NotesLoggingController;
 import eu.pkgsoftware.babybuddywidgets.timers.TimerControlInterface;
 import eu.pkgsoftware.babybuddywidgets.timers.TimersUpdatedCallback;
 import eu.pkgsoftware.babybuddywidgets.timers.TranslatedException;
@@ -39,7 +40,9 @@ public class AlternativeBabyLayoutHolder extends RecyclerView.ViewHolder impleme
     private BabyBuddyClient.Timer[] cachedTimers = null;
     private List<TimersUpdatedCallback> updateTimersCallbacks = new ArrayList<>(10);
     private int pendingTimerModificationCalls = 0;
-    private LoggingButtonController loggingButtonController = null;
+    
+    private DiaperLoggingController diaperController = null;
+    private NotesLoggingController notesController = null;
 
     private String activeTimerType = null;
     private boolean timerRunning = false;
@@ -151,32 +154,43 @@ public class AlternativeBabyLayoutHolder extends RecyclerView.ViewHolder impleme
     }
 
     private void openDiaperLogger() {
-        if (loggingButtonController != null) {
-            loggingButtonController.openDiaper();
+        if (diaperController != null) {
+            // 打开尿布记录界面
+            // 这里可以实现自定义的界面展示逻辑
+            // 或者直接启动保存操作
+            baseFragment.getMainActivity().getScope().launch(() -> {
+                try {
+                    TimeEntry entry = diaperController.save();
+                    if (entry != null && childHistoryLoader != null) {
+                        childHistoryLoader.addEntryToTop(entry);
+                        childHistoryLoader.forceRefresh();
+                    }
+                } catch (Exception e) {
+                    // 处理异常
+                }
+            });
         }
     }
 
     private void openNotesLogger() {
-        if (loggingButtonController != null) {
-            loggingButtonController.openNotes();
+        if (notesController != null) {
+            // 打开笔记记录界面
+            baseFragment.getMainActivity().getScope().launch(() -> {
+                try {
+                    TimeEntry entry = notesController.save();
+                    if (entry != null && childHistoryLoader != null) {
+                        childHistoryLoader.addEntryToTop(entry);
+                        childHistoryLoader.forceRefresh();
+                    }
+                } catch (Exception e) {
+                    // 处理异常
+                }
+            });
         }
     }
 
     public BabyBuddyClient.Child getChild() {
         return child;
-    }
-
-    private void requeueImmediateTimerListRefresh() {
-        client.listTimers(child.id, new BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer[]>() {
-            @Override
-            public void error(@NonNull Exception error) {
-            }
-
-            @Override
-            public void response(BabyBuddyClient.Timer[] response) {
-                updateTimerList(response);
-            }
-        });
     }
 
     private void resetChildHistoryLoader() {
@@ -217,33 +231,11 @@ public class AlternativeBabyLayoutHolder extends RecyclerView.ViewHolder impleme
                 }
             );
 
-            loggingButtonController = new LoggingButtonController(
-                baseFragment,
-                null,
-                new FragmentCallbacks() {
-                    @Override
-                    public void insertControls(@NonNull View view) {
-                        // Handle differently in our UI
-                    }
-
-                    @Override
-                    public void removeControls(@NonNull View view) {
-                        // Handle differently in our UI
-                    }
-
-                    @Override
-                    public void updateTimeline(@Nullable TimeEntry newEntry) {
-                        if (childHistoryLoader != null) {
-                            if (newEntry != null) {
-                                childHistoryLoader.addEntryToTop(newEntry);
-                            }
-                            childHistoryLoader.forceRefresh();
-                        }
-                    }
-                },
-                child,
-                this
-            );
+            diaperController = new DiaperLoggingController(baseFragment, child.id);
+            notesController = new NotesLoggingController(baseFragment, child.id);
+            
+            diaperController.postInit();
+            notesController.postInit();
         }
     }
 
@@ -285,9 +277,13 @@ public class AlternativeBabyLayoutHolder extends RecyclerView.ViewHolder impleme
     }
 
     public void clear() {
-        if (loggingButtonController != null) {
-            loggingButtonController.destroy();
-            loggingButtonController = null;
+        if (diaperController != null) {
+            diaperController.storeStateForSuspend();
+            diaperController = null;
+        }
+        if (notesController != null) {
+            notesController.storeStateForSuspend();
+            notesController = null;
         }
         resetChildObserver();
         resetChildHistoryLoader();
