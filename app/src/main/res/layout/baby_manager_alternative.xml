@@ -20,132 +20,202 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Timer section -->
-            <TextView
+            <!-- Timer buttons - official style but kept for compatibility -->
+            <eu.pkgsoftware.babybuddywidgets.widgets.AutoHGrid
+                android:id="@+id/newTimerButtons"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/alternative_timer_section"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:paddingVertical="8dp" />
+                app:equalizeRowWidths="true">
 
-            <RadioGroup
-                android:id="@+id/timerRadioGroup"
+                <ImageButton
+                    android:id="@+id/feedingDisabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/timer_button_disabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_bottle"
+                    android:tintMode="src_in"
+                    android:visibility="gone"
+                    app:tint="@color/fixed_color_button_text_color" />
+
+                <ImageButton
+                    android:id="@+id/feedingEnabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/feeding_enabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_bottle"
+                    android:tintMode="src_in"
+                    android:visibility="visible"
+                    app:tint="@color/fixed_color_button_text_color" />
+
+                <ImageButton
+                    android:id="@+id/diaperDisabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/timer_button_disabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_diaper"
+                    android:tintMode="src_in"
+                    android:visibility="gone"
+                    app:tint="@color/fixed_color_button_text_color" />
+
+                <ImageButton
+                    android:id="@+id/diaperEnabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/diaper_enabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_diaper"
+                    android:tintMode="src_in"
+                    android:visibility="visible"
+                    app:tint="@color/fixed_color_button_text_color" />
+
+                <ImageButton
+                    android:id="@+id/sleepDisabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/timer_button_disabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_sleep"
+                    android:tintMode="src_in"
+                    android:visibility="gone"
+                    app:tint="@color/fixed_color_button_text_color" />
+
+                <ImageButton
+                    android:id="@+id/sleepEnabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/sleep_enabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_sleep"
+                    android:tintMode="src_in"
+                    android:visibility="visible"
+                    app:tint="@color/fixed_color_button_text_color" />
+
+                <ImageButton
+                    android:id="@+id/notesDisabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/timer_button_disabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_notes"
+                    android:tintMode="src_in"
+                    android:visibility="gone"
+                    app:tint="@color/fixed_color_button_text_color" />
+
+                <ImageButton
+                    android:id="@+id/notesEnabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/notes_enabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_notes"
+                    android:tintMode="src_in"
+                    android:visibility="visible"
+                    app:tint="@color/fixed_color_button_text_color" />
+
+                <ImageButton
+                    android:id="@+id/pumpingDisabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/timer_button_disabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_pumping"
+                    android:tintMode="src_in"
+                    android:visibility="gone"
+                    app:tint="@color/fixed_color_button_text_color" />
+
+                <ImageButton
+                    android:id="@+id/pumpingEnabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/pumping_enabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_pumping"
+                    android:tintMode="src_in"
+                    android:visibility="visible"
+                    app:tint="@color/fixed_color_button_text_color" />
+
+                <ImageButton
+                    android:id="@+id/tummyTimeDisabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/timer_button_disabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_crawl"
+                    android:tintMode="src_in"
+                    android:visibility="gone"
+                    app:tint="@color/fixed_color_button_text_color" />
+
+                <ImageButton
+                    android:id="@+id/tummyTimeEnabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/tummy_time_enabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_crawl"
+                    android:tintMode="src_in"
+                    android:visibility="visible"
+                    app:tint="@color/fixed_color_button_text_color" />
+            </eu.pkgsoftware.babybuddywidgets.widgets.AutoHGrid>
+
+            <LinearLayout
+                android:id="@+id/loggingEditors"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="match_parent"
+                android:orientation="vertical">
 
-                <RadioButton
-                    android:id="@+id/radioFeeding"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="12dp"
-                    android:text="@string/alternative_feeding"
-                    android:textSize="16sp"
-                    android:checked="true" />
-
-                <RadioButton
-                    android:id="@+id/radioSleep"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="12dp"
-                    android:text="@string/alternative_sleep"
-                    android:textSize="16sp" />
-
-                <RadioButton
-                    android:id="@+id/radioTummyTime"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="12dp"
-                    android:text="@string/alternative_tummy_time"
-                    android:textSize="16sp" />
-
-                <RadioButton
-                    android:id="@+id/radioPumping"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="12dp"
-                    android:text="@string/alternative_pumping"
-                    android:textSize="16sp" />
-
-            </RadioGroup>
-
-            <!-- Start/Stop timer button -->
-            <Button
-                android:id="@+id/btnStartStopTimer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="@string/alternative_start_timer"
-                android:textSize="16sp"
-                android:padding="12dp" />
-
-            <!-- Separator line -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="?android:attr/listDivider"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="16dp" />
-
-            <!-- Quick log section -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/alternative_quick_log_section"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:paddingVertical="8dp" />
-
-            <RadioGroup
-                android:id="@+id/quickLogRadioGroup"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <RadioButton
-                    android:id="@+id/radioDiaper"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="12dp"
-                    android:text="@string/alternative_diaper"
-                    android:textSize="16sp" />
-
-                <RadioButton
-                    android:id="@+id/radioNotes"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="12dp"
-                    android:text="@string/alternative_notes"
-                    android:textSize="16sp" />
-
-            </RadioGroup>
-
-            <!-- Quick log button -->
-            <Button
-                android:id="@+id/btnQuickLog"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="@string/alternative_log"
-                android:textSize="16sp"
-                android:padding="12dp" />
-
-            <!-- Separator line -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="?android:attr/listDivider"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="16dp" />
+            </LinearLayout>
 
             <!-- Timeline title -->
-            <TextView
-                android:id="@+id/timelineTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/timeline_title_line_title"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_gravity="center_horizontal" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="4dp"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <FrameLayout
+                    android:id="@+id/leftTimelineTitleLine"
+                    style="@style/SeparatorLine"
+                    android:layout_width="wrap_content"
+                    android:layout_height="4dp"
+                    android:layout_margin="10dp"
+                    android:layout_weight="1">
+
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/timelineTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:text="@string/timeline_title_line_title" />
+
+                <FrameLayout
+                    android:id="@+id/rightTimelineTitleLine"
+                    style="@style/SeparatorLine"
+                    android:layout_width="wrap_content"
+                    android:layout_height="4dp"
+                    android:layout_margin="10dp"
+                    android:layout_weight="1">
+
+                </FrameLayout>
+            </LinearLayout>
 
             <!-- Timeline -->
             <LinearLayout

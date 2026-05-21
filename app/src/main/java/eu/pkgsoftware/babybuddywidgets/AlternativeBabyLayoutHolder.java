@@ -1,9 +1,6 @@
 package eu.pkgsoftware.babybuddywidgets;
 
 import android.view.View;
-import android.widget.Button;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 
 import com.squareup.phrase.Phrase;
 
@@ -21,9 +18,8 @@ import eu.pkgsoftware.babybuddywidgets.history.ChildEventHistoryLoader;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry;
-import eu.pkgsoftware.babybuddywidgets.timers.DiaperLoggingController;
 import eu.pkgsoftware.babybuddywidgets.timers.FragmentCallbacks;
-import eu.pkgsoftware.babybuddywidgets.timers.NotesLoggingController;
+import eu.pkgsoftware.babybuddywidgets.timers.LoggingButtonController;
 import eu.pkgsoftware.babybuddywidgets.timers.TimerControlInterface;
 import eu.pkgsoftware.babybuddywidgets.timers.TimersUpdatedCallback;
 import eu.pkgsoftware.babybuddywidgets.timers.TranslatedException;
@@ -40,12 +36,7 @@ public class AlternativeBabyLayoutHolder extends RecyclerView.ViewHolder impleme
     private BabyBuddyClient.Timer[] cachedTimers = null;
     private List<TimersUpdatedCallback> updateTimersCallbacks = new ArrayList<>(10);
     private int pendingTimerModificationCalls = 0;
-    
-    private DiaperLoggingController diaperController = null;
-    private NotesLoggingController notesController = null;
-
-    private String activeTimerType = null;
-    private boolean timerRunning = false;
+    private LoggingButtonController loggingButtonController = null;
 
     public AlternativeBabyLayoutHolder(BaseFragment fragment, BabyManagerAlternativeBinding bmb) {
         super(bmb.getRoot());
@@ -59,138 +50,23 @@ public class AlternativeBabyLayoutHolder extends RecyclerView.ViewHolder impleme
                 childHistoryLoader.updateTop();
             }
         });
-
-        setupRadioButtons();
-        setupButtons();
-    }
-
-    private void setupRadioButtons() {
-        binding.timerRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-            if (checkedId == R.id.radioFeeding) {
-                activeTimerType = "feeding";
-            } else if (checkedId == R.id.radioSleep) {
-                activeTimerType = "sleep";
-            } else if (checkedId == R.id.radioTummyTime) {
-                activeTimerType = "tummy time";
-            } else if (checkedId == R.id.radioPumping) {
-                activeTimerType = "pumping";
-            }
-            updateTimerButton();
-        });
-
-        // Default to feeding
-        binding.radioFeeding.setChecked(true);
-        activeTimerType = "feeding";
-    }
-
-    private void setupButtons() {
-        binding.btnStartStopTimer.setOnClickListener(v -> {
-            if (timerRunning) {
-                stopActiveTimer();
-            } else {
-                startActiveTimer();
-            }
-        });
-
-        binding.btnQuickLog.setOnClickListener(v -> {
-            int checkedId = binding.quickLogRadioGroup.getCheckedRadioButtonId();
-            if (checkedId == R.id.radioDiaper) {
-                openDiaperLogger();
-            } else if (checkedId == R.id.radioNotes) {
-                openNotesLogger();
-            }
-        });
-    }
-
-    private void updateTimerButton() {
-        if (timerRunning) {
-            binding.btnStartStopTimer.setText(R.string.alternative_stop_timer);
-        } else {
-            binding.btnStartStopTimer.setText(R.string.alternative_start_timer);
-        }
-    }
-
-    private void startActiveTimer() {
-        if (activeTimerType == null || child == null) return;
-
-        BabyBuddyClient.Timer timer = new BabyBuddyClient.Timer();
-        timer.child_id = child.id;
-        timer.type = activeTimerType;
-
-        startTimer(timer, new Promise<BabyBuddyClient.Timer, TranslatedException>() {
-            @Override
-            public void succeeded(BabyBuddyClient.Timer result) {
-                timerRunning = true;
-                updateTimerButton();
-            }
-
-            @Override
-            public void failed(TranslatedException error) {
-                baseFragment.getMainActivity().binding.globalErrorBubble.flashMessage(
-                    error.getLocalizedMessage(baseFragment.getContext())
-                );
-            }
-        });
-    }
-
-    private void stopActiveTimer() {
-        if (cachedTimers != null && cachedTimers.length > 0) {
-            BabyBuddyClient.Timer activeTimer = cachedTimers[0];
-            stopTimer(activeTimer, new Promise<Object, TranslatedException>() {
-                @Override
-                public void succeeded(Object result) {
-                    timerRunning = false;
-                    updateTimerButton();
-                }
-
-                @Override
-                public void failed(TranslatedException error) {
-                    baseFragment.getMainActivity().binding.globalErrorBubble.flashMessage(
-                        error.getLocalizedMessage(baseFragment.getContext())
-                    );
-                }
-            });
-        }
-    }
-
-    private void openDiaperLogger() {
-        if (diaperController != null) {
-            // 打开尿布记录界面
-            // 这里可以实现自定义的界面展示逻辑
-            // 或者直接启动保存操作
-            baseFragment.getMainActivity().getScope().launch(() -> {
-                try {
-                    TimeEntry entry = diaperController.save();
-                    if (entry != null && childHistoryLoader != null) {
-                        childHistoryLoader.addEntryToTop(entry);
-                        childHistoryLoader.forceRefresh();
-                    }
-                } catch (Exception e) {
-                    // 处理异常
-                }
-            });
-        }
-    }
-
-    private void openNotesLogger() {
-        if (notesController != null) {
-            // 打开笔记记录界面
-            baseFragment.getMainActivity().getScope().launch(() -> {
-                try {
-                    TimeEntry entry = notesController.save();
-                    if (entry != null && childHistoryLoader != null) {
-                        childHistoryLoader.addEntryToTop(entry);
-                        childHistoryLoader.forceRefresh();
-                    }
-                } catch (Exception e) {
-                    // 处理异常
-                }
-            });
-        }
     }
 
     public BabyBuddyClient.Child getChild() {
         return child;
+    }
+
+    private void requeueImmediateTimerListRefresh() {
+        client.listTimers(child.id, new BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer[]>() {
+            @Override
+            public void error(@NonNull Exception error) {
+            }
+
+            @Override
+            public void response(BabyBuddyClient.Timer[] response) {
+                updateTimerList(response);
+            }
+        });
     }
 
     private void resetChildHistoryLoader() {
@@ -231,11 +107,39 @@ public class AlternativeBabyLayoutHolder extends RecyclerView.ViewHolder impleme
                 }
             );
 
-            diaperController = new DiaperLoggingController(baseFragment, child.id);
-            notesController = new NotesLoggingController(baseFragment, child.id);
-            
-            diaperController.postInit();
-            notesController.postInit();
+            loggingButtonController = new LoggingButtonController(
+                baseFragment,
+                binding,
+                new FragmentCallbacks() {
+                    @Override
+                    public void insertControls(@NonNull View view) {
+                        if (view.getParent() != null) {
+                            return;
+                        }
+                        binding.loggingEditors.addView(view);
+                    }
+
+                    @Override
+                    public void removeControls(@NonNull View view) {
+                        if (view.getParent() == null) {
+                            return;
+                        }
+                        binding.loggingEditors.removeView(view);
+                    }
+
+                    @Override
+                    public void updateTimeline(@Nullable TimeEntry newEntry) {
+                        if (childHistoryLoader != null) {
+                            if (newEntry != null) {
+                                childHistoryLoader.addEntryToTop(newEntry);
+                            }
+                            childHistoryLoader.forceRefresh();
+                        }
+                    }
+                },
+                child,
+                this
+            );
         }
     }
 
@@ -246,8 +150,6 @@ public class AlternativeBabyLayoutHolder extends RecyclerView.ViewHolder impleme
 
         if (child == null) {
             cachedTimers = new BabyBuddyClient.Timer[0];
-            timerRunning = false;
-            updateTimerButton();
             callTimerUpdateCallback();
             return;
         }
@@ -259,12 +161,13 @@ public class AlternativeBabyLayoutHolder extends RecyclerView.ViewHolder impleme
         }
 
         cachedTimers = timers;
-        timerRunning = timers.length > 0;
-        updateTimerButton();
         callTimerUpdateCallback();
     }
 
     public void onViewDeselected() {
+        if (loggingButtonController != null) {
+            loggingButtonController.storeStateForSuspend();
+        }
         resetChildObserver();
         resetChildHistoryLoader();
     }
@@ -277,13 +180,10 @@ public class AlternativeBabyLayoutHolder extends RecyclerView.ViewHolder impleme
     }
 
     public void clear() {
-        if (diaperController != null) {
-            diaperController.storeStateForSuspend();
-            diaperController = null;
-        }
-        if (notesController != null) {
-            notesController.storeStateForSuspend();
-            notesController = null;
+        if (loggingButtonController != null) {
+            loggingButtonController.storeStateForSuspend();
+            loggingButtonController.destroy();
+            loggingButtonController = null;
         }
         resetChildObserver();
         resetChildHistoryLoader();
