@@ -263,4 +263,15 @@
     <string name="alternative_pumping">Pumping</string>
     <string name="alternative_diaper">Diaper</string>
     <string name="alternative_notes">Notes</string>
+
+    <!-- Alternative interface labels -->
+    <string name="quick_actions">Quick Actions</string>
+    <string name="feeding_button_label">Feed</string>
+    <string name="sleep_button_label">Sleep</string>
+    <string name="diaper_button_label">Diaper</string>
+    <string name="pumping_button_label">Pump</string>
+    <string name="tummy_time_button_label">Tummy</string>
+    <string name="notes_button_label">Note</string>
+    <string name="stop_button_label">Stop</string>
+    <string name="start_button_label">Start</string>
 </resources>

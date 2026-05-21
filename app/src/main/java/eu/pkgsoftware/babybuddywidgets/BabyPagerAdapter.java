@@ -16,7 +16,6 @@ import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerAlternativeBinding
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
 
-// I need to extract this one!!!
 class BabyPagerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private List<RecyclerView.ViewHolder> holders = new ArrayList<>();
     private RecyclerView.ViewHolder activeHolder = null;
@@ -62,7 +61,7 @@ class BabyPagerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
             ));
 
-            AlternativeBabyLayoutHolder holder = new AlternativeBabyLayoutHolder(fragment, babyBinding);
+            AlternativeBabyLayoutHolderKotlin holder = new AlternativeBabyLayoutHolderKotlin(fragment, babyBinding);
             holders.add(holder);
             return holder;
         } else {
@@ -84,8 +83,8 @@ class BabyPagerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         if (holder instanceof BabyLayoutHolder) {
             ((BabyLayoutHolder) holder).updateChild(children[position], stateTracker);
-        } else if (holder instanceof AlternativeBabyLayoutHolder) {
-            ((AlternativeBabyLayoutHolder) holder).updateChild(children[position], stateTracker);
+        } else if (holder instanceof AlternativeBabyLayoutHolderKotlin) {
+            ((AlternativeBabyLayoutHolderKotlin) holder).updateChild(children[position], stateTracker);
         }
 
         int childIndex = LoggedInFragment.childIndexBySlug(
@@ -103,8 +102,8 @@ class BabyPagerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public void onViewRecycled(@NonNull RecyclerView.ViewHolder holder) {
         if (holder instanceof BabyLayoutHolder) {
             ((BabyLayoutHolder) holder).clear();
-        } else if (holder instanceof AlternativeBabyLayoutHolder) {
-            ((AlternativeBabyLayoutHolder) holder).clear();
+        } else if (holder instanceof AlternativeBabyLayoutHolderKotlin) {
+            ((AlternativeBabyLayoutHolderKotlin) holder).clear();
         }
     }
 
@@ -127,8 +126,8 @@ class BabyPagerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 } else {
                     holder.onViewDeselected();
                 }
-            } else if (h instanceof AlternativeBabyLayoutHolder) {
-                AlternativeBabyLayoutHolder holder = (AlternativeBabyLayoutHolder) h;
+            } else if (h instanceof AlternativeBabyLayoutHolderKotlin) {
+                AlternativeBabyLayoutHolderKotlin holder = (AlternativeBabyLayoutHolderKotlin) h;
                 if (Objects.equals(c, holder.getChild())) {
                     holder.updateChild(c, stateTracker);
                     activeHolder = h;
@@ -147,8 +146,8 @@ class BabyPagerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         for (RecyclerView.ViewHolder h : holders) {
             if (h instanceof BabyLayoutHolder) {
                 ((BabyLayoutHolder) h).close();
-            } else if (h instanceof AlternativeBabyLayoutHolder) {
-                ((AlternativeBabyLayoutHolder) h).close();
+            } else if (h instanceof AlternativeBabyLayoutHolderKotlin) {
+                ((AlternativeBabyLayoutHolderKotlin) h).close();
             }
         }
     }

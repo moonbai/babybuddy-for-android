@@ -1,239 +1,479 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:background="?android:attr/colorBackground">
 
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
         android:id="@+id/mainScrollView"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:padding="16dp">
 
-            <!-- Timer buttons - official style but kept for compatibility -->
-            <eu.pkgsoftware.babybuddywidgets.widgets.AutoHGrid
-                android:id="@+id/newTimerButtons"
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/headerCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:equalizeRowWidths="true">
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="0dp">
 
-                <ImageButton
-                    android:id="@+id/feedingDisabledButton"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_weight="0"
-                    android:backgroundTint="@color/timer_button_disabled"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/pkg_bottle"
-                    android:tintMode="src_in"
-                    android:visibility="gone"
-                    app:tint="@color/fixed_color_button_text_color" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-                <ImageButton
-                    android:id="@+id/feedingEnabledButton"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_weight="0"
-                    android:backgroundTint="@color/feeding_enabled"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/pkg_bottle"
-                    android:tintMode="src_in"
-                    android:visibility="visible"
-                    app:tint="@color/fixed_color_button_text_color" />
+                    <TextView
+                        android:id="@+id/childName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textStyle="bold"
+                        tools:text="Baby Name" />
 
-                <ImageButton
-                    android:id="@+id/diaperDisabledButton"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_weight="0"
-                    android:backgroundTint="@color/timer_button_disabled"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/pkg_diaper"
-                    android:tintMode="src_in"
-                    android:visibility="gone"
-                    app:tint="@color/fixed_color_button_text_color" />
+                    <TextView
+                        android:id="@+id/childAge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        tools:text="6 months old" />
 
-                <ImageButton
-                    android:id="@+id/diaperEnabledButton"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_weight="0"
-                    android:backgroundTint="@color/diaper_enabled"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/pkg_diaper"
-                    android:tintMode="src_in"
-                    android:visibility="visible"
-                    app:tint="@color/fixed_color_button_text_color" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal">
 
-                <ImageButton
-                    android:id="@+id/sleepDisabledButton"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_weight="0"
-                    android:backgroundTint="@color/timer_button_disabled"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/pkg_sleep"
-                    android:tintMode="src_in"
-                    android:visibility="gone"
-                    app:tint="@color/fixed_color_button_text_color" />
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical">
 
-                <ImageButton
-                    android:id="@+id/sleepEnabledButton"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_weight="0"
-                    android:backgroundTint="@color/sleep_enabled"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/pkg_sleep"
-                    android:tintMode="src_in"
-                    android:visibility="visible"
-                    app:tint="@color/fixed_color_button_text_color" />
+                            <TextView
+                                android:id="@+id/todayFeedings"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="?attr/textAppearanceTitleLarge"
+                                android:textColor="@color/feeding_enabled"
+                                android:textStyle="bold"
+                                tools:text="3" />
 
-                <ImageButton
-                    android:id="@+id/notesDisabledButton"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_weight="0"
-                    android:backgroundTint="@color/timer_button_disabled"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/pkg_notes"
-                    android:tintMode="src_in"
-                    android:visibility="gone"
-                    app:tint="@color/fixed_color_button_text_color" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/feeding_button_label"
+                                android:textAppearance="?attr/textAppearanceLabelSmall"
+                                android:textColor="?attr/colorOnSurfaceVariant" />
+                        </LinearLayout>
 
-                <ImageButton
-                    android:id="@+id/notesEnabledButton"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_weight="0"
-                    android:backgroundTint="@color/notes_enabled"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/pkg_notes"
-                    android:tintMode="src_in"
-                    android:visibility="visible"
-                    app:tint="@color/fixed_color_button_text_color" />
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical">
 
-                <ImageButton
-                    android:id="@+id/pumpingDisabledButton"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_weight="0"
-                    android:backgroundTint="@color/timer_button_disabled"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/pkg_pumping"
-                    android:tintMode="src_in"
-                    android:visibility="gone"
-                    app:tint="@color/fixed_color_button_text_color" />
+                            <TextView
+                                android:id="@+id/todayDiapers"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="?attr/textAppearanceTitleLarge"
+                                android:textColor="@color/diaper_enabled"
+                                android:textStyle="bold"
+                                tools:text="5" />
 
-                <ImageButton
-                    android:id="@+id/pumpingEnabledButton"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_weight="0"
-                    android:backgroundTint="@color/pumping_enabled"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/pkg_pumping"
-                    android:tintMode="src_in"
-                    android:visibility="visible"
-                    app:tint="@color/fixed_color_button_text_color" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/diaper_button_label"
+                                android:textAppearance="?attr/textAppearanceLabelSmall"
+                                android:textColor="?attr/colorOnSurfaceVariant" />
+                        </LinearLayout>
 
-                <ImageButton
-                    android:id="@+id/tummyTimeDisabledButton"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_weight="0"
-                    android:backgroundTint="@color/timer_button_disabled"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/pkg_crawl"
-                    android:tintMode="src_in"
-                    android:visibility="gone"
-                    app:tint="@color/fixed_color_button_text_color" />
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical">
 
-                <ImageButton
-                    android:id="@+id/tummyTimeEnabledButton"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_weight="0"
-                    android:backgroundTint="@color/tummy_time_enabled"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/pkg_crawl"
-                    android:tintMode="src_in"
-                    android:visibility="visible"
-                    app:tint="@color/fixed_color_button_text_color" />
-            </eu.pkgsoftware.babybuddywidgets.widgets.AutoHGrid>
+                            <TextView
+                                android:id="@+id/todaySleep"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="?attr/textAppearanceTitleLarge"
+                                android:textColor="@color/sleep_enabled"
+                                android:textStyle="bold"
+                                tools:text="2h" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/sleep_button_label"
+                                android:textAppearance="?attr/textAppearanceLabelSmall"
+                                android:textColor="?attr/colorOnSurfaceVariant" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/timerCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:visibility="gone"
+                app:cardBackgroundColor="@color/sleep_enabled"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:strokeWidth="0dp"
+                tools:visibility="visible">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/timerActivity"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="?attr/textAppearanceLabelMedium"
+                            android:textColor="@android:color/white"
+                            android:textStyle="bold"
+                            tools:text="Sleeping" />
+
+                        <TextView
+                            android:id="@+id/timerDuration"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="?attr/textAppearanceHeadlineLarge"
+                            android:textColor="@android:color/white"
+                            android:textStyle="bold"
+                            tools:text="02:34:15" />
+                    </LinearLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/stopTimerButton"
+                        style="@style/Widget.Material3.Button.TonalButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/stop_button_label"
+                        app:backgroundTint="@android:color/white"
+                        app:icon="@drawable/pkg_stop"
+                        app:iconTint="@color/sleep_enabled" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="@string/quick_actions"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorOnSurface" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/feedingCard"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="@color/feeding_enabled"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                    app:rippleColor="@color/purple_200"
+                    app:strokeWidth="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:src="@drawable/pkg_bottle"
+                            app:tint="@android:color/white"
+                            android:contentDescription="@string/feeding_button_label" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/feeding_button_label"
+                            android:textColor="@android:color/white"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/sleepCard"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="@color/sleep_enabled"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                    app:rippleColor="@color/purple_200"
+                    app:strokeWidth="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:src="@drawable/pkg_sleep"
+                            app:tint="@android:color/white"
+                            android:contentDescription="@string/sleep_button_label" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/sleep_button_label"
+                            android:textColor="@android:color/white"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/diaperCard"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="@color/diaper_enabled"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                    app:rippleColor="@color/purple_200"
+                    app:strokeWidth="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:src="@drawable/pkg_diaper"
+                            app:tint="@android:color/white"
+                            android:contentDescription="@string/diaper_button_label" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/diaper_button_label"
+                            android:textColor="@android:color/white"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/pumpingCard"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="@color/pumping_enabled"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                    app:rippleColor="@color/purple_200"
+                    app:strokeWidth="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:src="@drawable/pkg_pumping"
+                            app:tint="@android:color/white"
+                            android:contentDescription="@string/pumping_button_label" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/pumping_button_label"
+                            android:textColor="@android:color/white"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/tummyTimeCard"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="@color/tummy_time_enabled"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                    app:rippleColor="@color/purple_200"
+                    app:strokeWidth="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:src="@drawable/pkg_crawl"
+                            app:tint="@android:color/white"
+                            android:contentDescription="@string/tummy_time_button_label" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/tummy_time_button_label"
+                            android:textColor="@android:color/white"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/notesCard"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="@color/notes_enabled"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                    app:rippleColor="@color/purple_200"
+                    app:strokeWidth="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:src="@drawable/pkg_notes"
+                            app:tint="@android:color/white"
+                            android:contentDescription="@string/notes_button_label" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/notes_button_label"
+                            android:textColor="@android:color/white"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/loggingEditors"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
 
-            </LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:text="@string/timeline_title_line_title"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorOnSurface" />
 
-            <!-- Timeline title -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginBottom="4dp"
-                android:layout_marginTop="16dp"
-                android:gravity="center"
-                android:orientation="horizontal">
-
-                <FrameLayout
-                    android:id="@+id/leftTimelineTitleLine"
-                    style="@style/SeparatorLine"
-                    android:layout_width="wrap_content"
-                    android:layout_height="4dp"
-                    android:layout_margin="10dp"
-                    android:layout_weight="1">
-
-                </FrameLayout>
-
-                <TextView
-                    android:id="@+id/timelineTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0"
-                    android:text="@string/timeline_title_line_title" />
-
-                <FrameLayout
-                    android:id="@+id/rightTimelineTitleLine"
-                    style="@style/SeparatorLine"
-                    android:layout_width="wrap_content"
-                    android:layout_height="4dp"
-                    android:layout_margin="10dp"
-                    android:layout_weight="1">
-
-                </FrameLayout>
-            </LinearLayout>
-
-            <!-- Timeline -->
             <LinearLayout
                 android:id="@+id/innerTimeline"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:layout_marginTop="8dp" />
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
 
-            <!-- Loading spinner -->
             <ProgressBar
                 android:id="@+id/timelineProgressSpinner"
                 style="?android:attr/progressBarStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp" />
+                android:layout_marginTop="8dp"
+                android:visibility="gone" />
 
         </LinearLayout>
-    </ScrollView>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
