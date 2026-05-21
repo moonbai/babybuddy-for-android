@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 import eu.pkgsoftware.babybuddywidgets.activitycomponents.TimerControl;
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerAlternativeBinding;
@@ -18,8 +17,6 @@ import eu.pkgsoftware.babybuddywidgets.history.ChildEventHistoryLoader;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry;
-import eu.pkgsoftware.babybuddywidgets.timers.FragmentCallbacks;
-import eu.pkgsoftware.babybuddywidgets.timers.LoggingButtonController;
 import eu.pkgsoftware.babybuddywidgets.timers.TimerControlInterface;
 import eu.pkgsoftware.babybuddywidgets.timers.TimersUpdatedCallback;
 import eu.pkgsoftware.babybuddywidgets.timers.TranslatedException;
@@ -36,7 +33,6 @@ public class AlternativeBabyLayoutHolder extends RecyclerView.ViewHolder impleme
     private BabyBuddyClient.Timer[] cachedTimers = null;
     private List<TimersUpdatedCallback> updateTimersCallbacks = new ArrayList<>(10);
     private int pendingTimerModificationCalls = 0;
-    private LoggingButtonController loggingButtonController = null;
 
     public AlternativeBabyLayoutHolder(BaseFragment fragment, BabyManagerAlternativeBinding bmb) {
         super(bmb.getRoot());
@@ -106,40 +102,6 @@ public class AlternativeBabyLayoutHolder extends RecyclerView.ViewHolder impleme
                     baseFragment.getMainActivity().binding.globalErrorBubble.flashMessage(msg);
                 }
             );
-
-            loggingButtonController = new LoggingButtonController(
-                baseFragment,
-                binding,
-                new FragmentCallbacks() {
-                    @Override
-                    public void insertControls(@NonNull View view) {
-                        if (view.getParent() != null) {
-                            return;
-                        }
-                        binding.loggingEditors.addView(view);
-                    }
-
-                    @Override
-                    public void removeControls(@NonNull View view) {
-                        if (view.getParent() == null) {
-                            return;
-                        }
-                        binding.loggingEditors.removeView(view);
-                    }
-
-                    @Override
-                    public void updateTimeline(@Nullable TimeEntry newEntry) {
-                        if (childHistoryLoader != null) {
-                            if (newEntry != null) {
-                                childHistoryLoader.addEntryToTop(newEntry);
-                            }
-                            childHistoryLoader.forceRefresh();
-                        }
-                    }
-                },
-                child,
-                this
-            );
         }
     }
 
@@ -165,9 +127,6 @@ public class AlternativeBabyLayoutHolder extends RecyclerView.ViewHolder impleme
     }
 
     public void onViewDeselected() {
-        if (loggingButtonController != null) {
-            loggingButtonController.storeStateForSuspend();
-        }
         resetChildObserver();
         resetChildHistoryLoader();
     }
@@ -180,11 +139,6 @@ public class AlternativeBabyLayoutHolder extends RecyclerView.ViewHolder impleme
     }
 
     public void clear() {
-        if (loggingButtonController != null) {
-            loggingButtonController.storeStateForSuspend();
-            loggingButtonController.destroy();
-            loggingButtonController = null;
-        }
         resetChildObserver();
         resetChildHistoryLoader();
         child = null;
