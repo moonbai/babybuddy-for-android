@@ -435,6 +435,7 @@ public class BabyBuddyClient extends StreamReader {
         HttpURLConnection con = (HttpURLConnection) pathToUrl(path).openConnection();
         String token = credStore.getAppToken();
         con.setRequestProperty("Authorization", "Token " + token);
+        con.setRequestProperty("Accept", "application/json");
 
         QueryValues qValues = new QueryValues();
         for (Map.Entry<String, String> entry : credStore.getAuthCookies().entrySet()) {
